@@ -11,7 +11,6 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
-
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 
@@ -27,7 +26,6 @@ export default class StartScreen extends Component {
     };
     StatusBar.setBarStyle('default');
   }
-
   componentDidMount = async () => {};
 
   goto = link => this.props.navigation.navigate(link);

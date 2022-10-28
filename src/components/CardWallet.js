@@ -20,8 +20,12 @@ const icons = {
 };
 
 export default CardWallet = props => {
-  const {type, value, number, end} = props;
-
+  const {type, value, address, onQrCode, end} = props;
+  const normilizeAddress = address => {
+    let beginAddress = address.slice(0, 6);
+    let endAddress = address.slice(address.length - 4);
+    return `${beginAddress}...${endAddress}`;
+  };
   return (
     <View style={[s.container, {marginRight: end ? -2 : 4}]}>
       <ImageBackground
@@ -41,16 +45,20 @@ export default CardWallet = props => {
               </Text>
             </Text>
           </View>
-          <View style={[styles.center, s.qr]}>
-            <SvgXml xml={icons.qr} />
-          </View>
+          {address && (
+            <TouchableOpacity style={[styles.center, s.qr]} onPress={onQrCode}>
+              <SvgXml xml={icons.qr} />
+            </TouchableOpacity>
+          )}
         </View>
         {type !== 'GEM' && (
           <View>
             <Text style={s.small}>Номер кошелька</Text>
             <View style={[styles.center, {justifyContent: 'flex-start'}]}>
-              <Text style={s.number}>{number}</Text>
-              <TouchableOpacity onPress={() => Clipboard.setString(number)}>
+              <Text style={s.number}>
+                {address && normilizeAddress(address)}
+              </Text>
+              <TouchableOpacity onPress={() => Clipboard.setString(address)}>
                 <SvgXml xml={icons.copy} />
               </TouchableOpacity>
             </View>

@@ -3,6 +3,11 @@
  */
 
 import React, {Component} from 'react';
+import {
+  NativeModules,
+  NativeEventEmitter,
+  PermissionsAndroid,
+} from 'react-native';
 import {createAppContainer, createSwitchNavigator} from 'react-navigation';
 import {
   CardStyleInterpolators,
@@ -10,7 +15,7 @@ import {
 } from 'react-navigation-stack';
 // plug-ins
 import BleManager from 'react-native-ble-manager';
-//import OneSignal from 'react-native-onesignal'
+import OneSignal from 'react-native-onesignal';
 import NetInfo from '@react-native-community/netinfo';
 import {enableLatestRenderer} from 'react-native-maps';
 
@@ -47,15 +52,18 @@ import SettingsScreen from './src/screens/Settings/Index';
 import Safety from './src/screens/Safety/Index';
 import PINcode from './src/screens/PINcode/Index';
 
+import BLE from './src/screens/BLE/Index';
+
 // helpers
 import {Http, Storage, Utils} from './src/helpers/Index';
 
 // globals
 import {API} from './src/globals/Сonstants';
-import {DataProvider} from './src/providers/DataProvider';
-import StoryContainer from './src/components/stories/StoryContainer';
+// import {DataProvider} from './src/providers/DataProvider';
+// import StoryContainer from './src/components/stories/StoryContainer';
 import {Easing} from 'react-native-reanimated';
 import {User} from './src/models/Index';
+import {StatusBar} from 'react-native';
 
 // constants
 const duration = 320;
@@ -102,7 +110,7 @@ const startBlock = createStackNavigator(
     Register: Register,
   },
   options,
-  (options.initialRouteName = 'Start'),
+  (options.initialRouteName = 'Login'),
   (Register.navigationOptions = {
     animationEnabled: true,
     transitionSpec,
@@ -129,9 +137,11 @@ const mainBlock = createStackNavigator(
     Main: Main,
     Meditations: Meditations,
     MeditationPlayer: MeditationPlayer,
+    BLE,
   },
   options,
   (options.initialRouteName = 'Main'),
+  // (options.initialRouteName = 'BLE'),
   (Meditations.navigationOptions = {
     animationEnabled: true,
     transitionSpec,
@@ -236,57 +246,80 @@ export default class App extends Component {
       screen: 'Loading',
       loading: true,
     };
-    // OneSignal.setLogLevel(6, 0)
-    // OneSignal.setAppId(API.pushKey)
-    // OneSignal.promptForPushNotificationsWithUserResponse((response) => {
-    // 	console.log("Prompt response:", response);
-    // })
-    //OneSignal.setNotificationOpenedHandler((notification) => {
-    //	console.log("OneSignal: notification opened:", notification)
-    // const data = {
-    // 	title:notification.notification.title,
-    // 	body:notification.notification.body,
-    // 	data:notification.notification.additionalData
-    // }
-    // const {actionID} = notification.action
-    // if (data.data) {
-    // 	if (data.data.type === 'REQUEST' && actionID === 'accept') {
-    // 		ParkingRequestsModel.update(data.data.id, {status:parkingRequestStatus.HOLD})
-    // 		PushesModel.add('Заявка подтверждена!', '', data.body, data.data.requesterId, null, {type:'REQUEST',id:data.data.id})
-    // 	}
-    // 	if (data.data.type === 'REQUEST' && actionID === 'cancel') {
-    // 		ParkingRequestsModel.update(data.data.id, {status:parkingRequestStatus.IN_ACTIVE})
-    // 		PushesModel.add('Отмена заявки', '', data.body, data.data.requesterId)
-    // 		data.data.type = null
-    // 	}
-    // }
-    // Storage.set('push_data', JSON.stringify(data))
-    // this.setState({screen:'Pushes'})
-    //})
-    // NetInfo.addEventListener((state) => {
-    // 	console.log("Connection type", state.type)
-    // 	console.log("Is connected?", state.isConnected)
-    // 	if (!state.isConnected) this.setState({screen:'NoInternet'})
-    // })
+
+    OneSignal.setLogLevel(6, 0);
+    OneSignal.setAppId(API.pushKey);
+    OneSignal.promptForPushNotificationsWithUserResponse(response => {
+      console.log('Prompt response:', response);
+    });
+    OneSignal.setNotificationOpenedHandler(notification => {
+      console.log('OneSignal: notification opened:', notification);
+      const data = {
+        title: notification.notification.title,
+        body: notification.notification.body,
+        data: notification.notification.additionalData,
+      };
+      const {actionID} = notification.action;
+      if (data.data) {
+        if (data.data.type === 'REQUEST' && actionID === 'accept') {
+          ParkingRequestsModel.update(data.data.id, {
+            status: parkingRequestStatus.HOLD,
+          });
+          PushesModel.add(
+            'Заявка подтверждена!',
+            '',
+            data.body,
+            data.data.requesterId,
+            null,
+            {type: 'REQUEST', id: data.data.id},
+          );
+        }
+        if (data.data.type === 'REQUEST' && actionID === 'cancel') {
+          ParkingRequestsModel.update(data.data.id, {
+            status: parkingRequestStatus.IN_ACTIVE,
+          });
+          PushesModel.add(
+            'Отмена заявки',
+            '',
+            data.body,
+            data.data.requesterId,
+          );
+          data.data.type = null;
+        }
+      }
+      // Storage.set('push_data', JSON.stringify(data));
+      this.setState({screen: 'Shop'});
+    });
+    NetInfo.addEventListener(state => {
+      console.log('Connection type', state.type);
+      console.log('Is connected?', state.isConnected);
+      if (!state.isConnected) this.setState({screen: 'NoInternet'});
+    });
 
     enableLatestRenderer();
   }
   componentDidMount = async () => {
+    // this.setState({screen: 'Start'});
     NetInfo.fetch().then(async state => {
       let screen = 'NoInternet';
       if (state.isConnected) {
         screen = await Storage.get('startScreen');
         const oldUser = await Storage.get('user');
-        const user = JSON.parse(oldUser);
-        const updateUser = await User.get(user._id);
-        Storage.set('user', updateUser);
+        if (oldUser && oldUser !== null) {
+          const user = JSON.parse(oldUser);
+
+          if (user?._id) {
+            const updateUser = await User.get(user?._id);
+            Storage.set('user', updateUser);
+          }
+        }
 
         if (Utils.empty(screen)) screen = 'Start';
       }
       if (
-        screen === 'NoInternet' ||
-        screen === 'Pushes' ||
-        screen === 'ParkingDetails'
+        screen === 'NoInternet'
+        // screen === 'Pushes' ||
+        // screen === 'ParkingDetails'
       )
         this.setState({loading: false, screen});
       else {
@@ -297,18 +330,15 @@ export default class App extends Component {
         });
       }
     });
-    BleManager.start({showAlert: false}).then(() => {
-      console.log('Ble Start');
-    });
   };
   render() {
     //Storage.clear()
     const AppContainer = createAppContainer(AppNavigator(this.state.screen));
     return (
-      <DataProvider>
-        <StoryContainer />
+      <>
+        <StatusBar backgroundColor={'#090909'} />
         <AppContainer />
-      </DataProvider>
+      </>
     );
   }
 }

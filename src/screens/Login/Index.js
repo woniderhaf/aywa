@@ -21,9 +21,10 @@ import {
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 import {User} from '../../models/Index';
+import Toast from 'react-native-easy-toast';
 // components
 import GoBack from '../../components/GoBack';
-import {Http, Screens, Storage, Utils} from '../../helpers/Index';
+import {Http, Screens, Storage, Utils, Toaster} from '../../helpers/Index';
 
 // styles
 import styles from '../../styles/Styles';
@@ -48,7 +49,7 @@ export default class LoginScreen extends Component {
     };
     StatusBar.setBarStyle('light-content');
   }
-
+  toast = null;
   componentDidMount = async () => {};
 
   goto = link => this.props.navigation.navigate(link);
@@ -67,7 +68,7 @@ export default class LoginScreen extends Component {
       this.goto('Main');
       Storage.set('startScreen', 'Main');
     } catch (error) {
-      Alert.alert('Неверный логин или пароль');
+      Toaster.show('Неверны логин или пароль', this.toast, styles, () => {});
     } finally {
       this.setState({isblock: false});
     }
@@ -85,6 +86,7 @@ export default class LoginScreen extends Component {
           scrollEnabled={false}>
           <View style={s.block}>
             <GoBack
+              isinnerHeight={true}
               navigation={this.props.navigation}
               color={styles.brownlight.color}
             />
@@ -172,6 +174,16 @@ export default class LoginScreen extends Component {
             </TouchableOpacity>
           )}
         </View>
+        <Toast
+          ref={t => (this.toast = t)}
+          style={[
+            styles.toastmessage,
+            {backgroundColor: 'red', width: '80%', alignItems: 'flex-end'},
+          ]}
+          position={'top'}
+          positionValue={-13}
+          fadeInDuration={3000}
+        />
       </View>
     );
   }

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -6,17 +6,23 @@ import {
   Settings,
   StyleSheet,
   Dimensions,
-  Switch,
 } from 'react-native';
 //plug-ins
 import {SvgXml} from 'react-native-svg';
 import {App} from '../../helpers/Index';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 //components
 import Template from '../../components/Template';
 //styles
 import styles from '../../styles/Styles';
 import {API} from '../../globals/Сonstants';
+import {Storage} from '../../helpers/Index';
 //constants
 const icons = {
   protected: `<svg width="48" height="31" viewBox="0 0 48 31" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_179_10879)"><path opacity="0.5" d="M16 18V14C16 9.582 19.582 6 24 6C28.418 6 32 9.582 32 14V18" stroke="#00FE00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 42H14C11.79 42 10 40.21 10 38V22C10 19.79 11.79 18 14 18H34C36.21 18 38 19.79 38 22V38C38 40.21 36.21 42 34 42Z" fill="#00FE00"/></g><defs><clipPath id="clip0_179_10879"><rect width="48" height="48" fill="white"/></clipPath></defs></svg>`,
@@ -40,18 +46,53 @@ export default SettingsScreen = props => {
   const goto = (link, data) => props.navigation.navigate(link, data);
   useEffect(() => {
     App.prepare(props.navigation, async user => {
+      let notifications = await Storage.get('notifications');
+      if (notifications) {
+        notifications = await JSON.parse(notifications);
+        setIsNewNFT(notifications?.isNewNFT);
+        setIsMeditation(notifications?.isMeditation);
+        setIsNews(notifications?.isNews);
+      }
       setLoading(false);
     });
   }, []);
+
   const changeLanguage = () => {
     language.close();
   };
+  const updateNewNFT = () => {
+    Storage.set('notifications', {isMeditation, isNews, isNewNFT: !isNewNFT});
+    setIsNewNFT(data => !data);
+  };
+  const updateMeditation = () => {
+    Storage.set('notifications', {
+      isMeditation: !isMeditation,
+      isNews,
+      isNewNFT,
+    });
+    setIsMeditation(data => !data);
+  };
+  const updateNews = () => {
+    Storage.set('notifications', {isMeditation, isNews: !isNews, isNewNFT});
+    setIsNews(data => !data);
+  };
+  const animation = module =>
+    useAnimatedStyle(() => {
+      const translateX = interpolate(
+        module,
+        [false, true],
+        [0, 23],
+        Extrapolate.CLAMP,
+      );
+      return {
+        transform: [{translateX: withTiming(translateX, 320)}],
+      };
+    });
   return (
     <>
       <Template
         isheader={true}
         isinner={true}
-        loading={loading}
         styles={styles}
         navigation={props.navigation}
         title="Настройки">
@@ -121,43 +162,41 @@ export default SettingsScreen = props => {
           <View style={s.BWrapper}>
             <View style={s.rangeBlock}>
               <Text style={s.BWText}>Напоминание о медитации</Text>
+
               <TouchableOpacity
-                onPress={() => setIsMeditation(data => !data)}
+                onPress={updateMeditation}
                 style={[
                   s.switchBlock,
-                  isMeditation
-                    ? {backgroundColor: '#A03BEF', justifyContent: 'flex-end'}
-                    : {justifyContent: 'flex-start'},
+                  isMeditation ? {backgroundColor: '#A03BEF'} : {},
                 ]}>
-                <View style={s.circle}></View>
+                <Animated.View
+                  style={[s.circle, animation(isMeditation)]}></Animated.View>
               </TouchableOpacity>
             </View>
             <View style={s.hr}></View>
             <View style={s.rangeBlock}>
               <Text style={s.BWText}>Новые NFT</Text>
               <TouchableOpacity
-                onPress={() => setIsNewNFT(data => !data)}
+                onPress={updateNewNFT}
                 style={[
                   s.switchBlock,
-                  isNewNFT
-                    ? {backgroundColor: '#A03BEF', justifyContent: 'flex-end'}
-                    : {justifyContent: 'flex-start'},
+                  isNewNFT ? {backgroundColor: '#A03BEF'} : {},
                 ]}>
-                <View style={s.circle}></View>
+                <Animated.View
+                  style={[s.circle, animation(isNewNFT)]}></Animated.View>
               </TouchableOpacity>
             </View>
             <View style={s.hr}></View>
             <View style={s.rangeBlock}>
               <Text style={s.BWText}>Новости проекта</Text>
               <TouchableOpacity
-                onPress={() => setIsNews(data => !data)}
+                onPress={updateNews}
                 style={[
                   s.switchBlock,
-                  isNews
-                    ? {backgroundColor: '#A03BEF', justifyContent: 'flex-end'}
-                    : {justifyContent: 'flex-start'},
+                  isNews ? {backgroundColor: '#A03BEF'} : {},
                 ]}>
-                <View style={s.circle}></View>
+                <Animated.View
+                  style={[s.circle, animation(isNews)]}></Animated.View>
               </TouchableOpacity>
             </View>
           </View>

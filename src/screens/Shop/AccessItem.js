@@ -7,8 +7,8 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+//pkug-ins
 import {SvgXml} from 'react-native-svg';
-
 //styles
 import styles from '../../styles/Styles';
 
@@ -26,10 +26,13 @@ export default AccessItem = ({v, goto}) => {
     <TouchableOpacity
       style={s.item}
       onPress={() => goto('ShopDetailsAccessories', {data: v})}>
-      {v.img ? (
-        <Image source={v.img} style={s.image} />
+      {v.image ? (
+        <Image
+          source={{uri: `data:image/png;base64,${v.image}`}}
+          style={[s.image]}
+        />
       ) : (
-        <View style={s.image}>
+        <View style={[s.image]}>
           <SvgXml xml={icons.placeholder} />
         </View>
       )}
@@ -37,7 +40,7 @@ export default AccessItem = ({v, goto}) => {
         <View style={s.coins}>
           <SvgXml xml={icons.coins} />
           <Text style={[styles.text, styles.middle, styles.bold, styles.ml5]}>
-            {v.price}
+            {v.cost}
           </Text>
         </View>
         <Text
@@ -78,6 +81,7 @@ const s = StyleSheet.create({
   },
   image: {
     width: '100%',
+    // width: 100,
     height: 162,
     alignItems: 'center',
     justifyContent: 'center',

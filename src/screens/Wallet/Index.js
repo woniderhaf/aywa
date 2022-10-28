@@ -1,4 +1,6 @@
-import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
+import 'react-native-get-random-values';
+// import {v4 as uuidv4} from 'uuid';
+import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {
   ScrollView,
   View,
@@ -9,26 +11,30 @@ import {
   Alert,
   Dimensions,
   Image,
+  Linking,
 } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
-  withSpring,
-  useAnimatedGestureHandler,
   useAnimatedScrollHandler,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
+import {PanGestureHandler} from 'react-native-gesture-handler';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {SvgXml} from 'react-native-svg';
 import CardWallet from '../../components/CardWallet';
 import Template from '../../components/Template';
 import {App} from '../../helpers/Index';
 import styles from '../../styles/Styles';
+import moment from 'moment';
+// import QRCode from 'react-native-qrcode-svg';
+
 import Transaction from '../../components/Transaction';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
-
+import * as solanaWeb3 from '@solana/web3.js';
+import {GetProgramAccountsConfig} from '@solana/web3.js';
+import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 results = [
   {
     type: 'replenishment',
@@ -77,18 +83,77 @@ results = [
   },
 ];
 
+const endpoint =
+  'https://quiet-dimensional-night.solana-mainnet.discover.quiknode.pro/4606b9a88143627ff0e89ee30f40420612e337e5/';
+
+// const solanaConnection = new solanaweb3.Connection(endpoint);
+// uuidv4();
 //start
 export default Wallet = props => {
-  let panel = null;
-
+  const solanaConnection = new solanaWeb3.Connection(endpoint);
+  // const solanaConnection = new solanaWeb3.Connection(
+  // solanaWeb3.clusterApiUrl('mainnet-beta'),
+  // );
+  const code = 'BjqM71VidJ7W1kjAQLSSd9Yw3wTb8GB7haScdju8JGAG';
+  let qrCode = null;
+  // const filter: GetProgramAccountsConfig[] = [
+  //   {
+  //     commitment: 'processed',
+  //   },
+  //   {
+  //     dataSize: 165,
+  //   },
+  //   {
+  //     memcmp: {
+  //       offset: 32,
+  //       bytes: code,
+  //     },
+  //   },
+  // ];
   //useState
   const [loading, setLoading] = useState(true);
+  // const [selectedPage, setSelectedPage] = useState(0);
+  const [transactions, setTransactions] = useState(null);
+  const [WLKNBalance, setWLKNBalance] = useState(null);
+  const [SOLBalance, setSOLBalance] = useState(null);
   useEffect(() => {
     App.prepare(props.navigation, async user => {
+      await getTransactions(code);
       setLoading(false);
     });
   }, []);
-  const code = 'HQeqXsYbajwRYna9Ratr9b7EHRkCJeckbzWakoxs9EtV';
+
+  // const current = useCallback(
+  //   e => {
+  //     console.log(e);
+  //   },
+  //   [selectedPage],
+  // );
+  const getTransactions = async (address, numTx) => {
+    const pubKey = new solanaWeb3.PublicKey(address);
+    const pubKeyWLKN = new solanaWeb3.PublicKey(
+      'GY15u1tXfrAEGfVyu9CAAzuDziwQV9L2BA99Gm19QdBH',
+    );
+    let transactionList = await solanaConnection.getSignaturesForAddress(
+      pubKey,
+    );
+    // const tokens = await solanaConnection.getTokenAccountsByOwner(pubKey);
+    // console.log(tokens);
+    const WLKN = await solanaConnection.getTokenAccountBalance(pubKeyWLKN);
+    setWLKNBalance(WLKN.value.uiAmount);
+
+    const SOL = await solanaConnection.getBalance(pubKey);
+    setSOLBalance(SOL / solanaWeb3.LAMPORTS_PER_SOL);
+    let signatureList = transactionList.map(
+      transaction => transaction.signature,
+    );
+
+    let transactionDetails = await solanaConnection.getParsedTransactions(
+      signatureList,
+    );
+    console.log(transactionDetails);
+    setTransactions(transactionDetails);
+  };
 
   const translateX = useSharedValue(0);
 
@@ -105,7 +170,9 @@ export default Wallet = props => {
         opacity,
       };
     });
-
+  const onQrCode = () => {
+    qrCode.snapToIndex(0);
+  };
   const animatedStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
       translateX.value,
@@ -129,6 +196,10 @@ export default Wallet = props => {
         transform: [{translateY}],
       };
     });
+  // const scrollAnimated = useAnimatedScrollHandler(event => {
+  //   activeindex.value = event.contentOffset.x / width;
+  //   translateX.value = event.contentOffset.x;
+  // });
   const scrollAnimated = useAnimatedScrollHandler(event => {
     translateX.value = event.contentOffset.x;
   });
@@ -138,6 +209,7 @@ export default Wallet = props => {
         styles={styles}
         page={'Wallet'}
         loading={loading}
+        bg={'#242424'}
         navigation={props.navigation}>
         <View style={{flex: 1}}>
           <ScrollView>
@@ -148,16 +220,20 @@ export default Wallet = props => {
               pagingEnabled
               showsHorizontalScrollIndicator={false}
               style={s.pageSlider}>
+              {/* // selectedPage={selectedPage} */}
+              {/* // onCurrentPageChange={current} */}
               <CardWallet type={'GEM'} value={20} />
               <CardWallet
                 type={'AW'}
-                value={534.12}
-                number="0x52975...4c0043"
+                value={WLKNBalance}
+                address={code}
+                onQrCode={onQrCode}
               />
               <CardWallet
                 type={'SOL'}
-                value={9}
-                number="0x52975...4c0043"
+                value={SOLBalance}
+                address={code}
+                onQrCode={onQrCode}
                 end
               />
             </Animated.ScrollView>
@@ -170,7 +246,7 @@ export default Wallet = props => {
             <Animated.View style={[s.step2, btnStyle(1), {zIndex: 50}]}>
               <TouchableOpacity
                 style={s.wrapperBtn}
-                onPress={() => panel.snapToIndex(0)}>
+                onPress={() => qrCode.snapToIndex(0)}>
                 <Text style={s.textBtn}>Получить</Text>
               </TouchableOpacity>
               <Animated.View style={[s.wrapperBtn]}>
@@ -180,7 +256,7 @@ export default Wallet = props => {
             <Animated.View style={[s.step2, btnStyle(-1)]}>
               <TouchableOpacity
                 style={s.wrapperBtn2}
-                onPress={() => panel.snapToIndex(0)}>
+                onPress={() => qrCode.snapToIndex(0)}>
                 <Text style={s.textBtn}>Получить</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.wrapperBtn2}>
@@ -202,7 +278,7 @@ export default Wallet = props => {
                 </TouchableOpacity>
               </View>
               <View style={s.oparations}>
-                {results.map((v, i) => (
+                {transactions?.map((v, i) => (
                   <Transaction key={i} data={v} />
                 ))}
               </View>
@@ -214,7 +290,7 @@ export default Wallet = props => {
         </View>
       </Template>
       <BottomSheet
-        ref={r => (panel = r)}
+        ref={r => (qrCode = r)}
         index={-1}
         snapPoints={[640]}
         backgroundStyle={{backgroundColor: 'transparent', borderRadius: 36}}
@@ -232,7 +308,11 @@ export default Wallet = props => {
         <View style={s.indicatorBtn}></View>
         <View style={s.wrapper}>
           <View style={s.qrBlock}>
-            <Image source={require('./Images/qr.png')} />
+            {/* <Image source={require('./Images/qr.png')} /> */}
+            <View
+              style={{backgroundColor: 'white', padding: 20, borderRadius: 20}}>
+              {/* <QRCode value={code} size={220} /> */}
+            </View>
           </View>
           <View style={s.codeBlock}>
             <Text style={s.code}>{code}</Text>
@@ -341,7 +421,7 @@ const s = StyleSheet.create({
   qrBlock: {
     backgroundColor: '#242424',
     borderRadius: 36,
-    padding: 70,
+    padding: 50,
     ...styles.center,
   },
   codeBlock: {

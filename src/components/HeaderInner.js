@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
-import {SvgXml} from 'react-native-svg';
+import {View, Text} from 'react-native';
+
 // components
 import GoBack from './GoBack';
 
@@ -12,8 +12,8 @@ export default Header = props => {
     context,
     link,
     styles,
-    isinnerHeight,
     bg,
+    isinnerHeight,
   } = props;
   return (
     <View style={[styles.headerinner, bg]}>
@@ -21,8 +21,8 @@ export default Header = props => {
         {navigation ? (
           <GoBack
             navigation={navigation}
-            link={link}
             isinnerHeight={isinnerHeight}
+            link={link}
           />
         ) : null}
       </View>
@@ -63,7 +63,9 @@ export default Header = props => {
           {title}
         </Text>
       )}
-      <View style={styles.headerRight}>{context}</View>
+      <View style={[styles.headerRight, context ? {} : {width: 60}]}>
+        {context}
+      </View>
     </View>
   );
 };

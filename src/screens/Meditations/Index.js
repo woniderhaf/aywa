@@ -7,18 +7,30 @@ import {
   Image,
   ImageBackground,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 
 // components
 import Template from '../../components/Template';
+import TrackItem from './TrackItem';
+import {App} from '../../helpers/Index';
 // plugins
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
 import {SvgXml} from 'react-native-svg';
 import TrackPlayer, {State} from 'react-native-track-player';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  useAnimatedGestureHandler,
+  useAnimatedScrollHandler,
+  interpolate,
+  Extrapolate,
+} from 'react-native-reanimated';
 // styles
 import styles from '../../styles/Styles';
-import TrackItem from './TrackItem';
-import {App} from '../../helpers/Index';
+
 // icons
 const icons = {
   watch: `<svg width="13" height="18" viewBox="0 0 13 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 0C3.89543 0 3 0.89543 3 2V2.17071C1.83481 2.58254 1 3.69378 1 5V6.13378C0.701099 6.30669 0.5 6.62986 0.5 7V8C0.5 8.37014 0.701099 8.69331 1 8.86622V13C1 14.3062 1.83481 15.4175 3 15.8293V16C3 17.1046 3.89543 18 5 18H9C10.1046 18 11 17.1046 11 16V15.8293C12.1652 15.4175 13 14.3062 13 13V5C13 3.69378 12.1652 2.58254 11 2.17071V2C11 0.895431 10.1046 0 9 0H5ZM4.25 3.25C3.14543 3.25 2.25 4.14543 2.25 5.25V12.75C2.25 13.8546 3.14543 14.75 4.25 14.75H9.75C10.8546 14.75 11.75 13.8546 11.75 12.75V5.25C11.75 4.14543 10.8546 3.25 9.75 3.25H4.25Z" fill="url(#paint0_linear_369_31001)"/><defs><linearGradient id="paint0_linear_369_31001" x1="-5.75" y1="-43.5" x2="19.833" y2="24.5501" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs></svg>`,
@@ -53,9 +65,11 @@ const tracks = [
 export default Meditations = props => {
   const goto = (link, data) => props.navigation.navigate(link, data);
   let panel = null;
+  let scroll = null;
+  let scrollTouch = null;
+
   const [user, setUser] = useState(null);
   const [isWatch, setIsWatch] = useState(false);
-  const [level, setLevel] = useState(0); // приходит из бд (есть у юзера)
   const [levelCount, setLevelCount] = useState([
     'I',
     'II',
@@ -89,10 +103,34 @@ export default Meditations = props => {
   useEffect(() => {
     setUpPlayer();
     App.prepare(props.navigation, async user => {
+      // setUser(user);
       setUser(user);
       setLoading(false);
     });
   }, []);
+  //animated
+  const translateX = useSharedValue(width * user?.level || 0);
+  const rStyle = index =>
+    useAnimatedStyle(() => {
+      const opacity = interpolate(
+        translateX.value,
+        [(index - 1) * width, index * width, (index + 1) * width],
+        [0.2, 1, 0.2],
+        Extrapolate.CLAMP,
+      );
+      return {
+        opacity,
+      };
+    });
+
+  const scrollAnimated = useAnimatedScrollHandler(event => {
+    translateX.value = event.contentOffset.x;
+    const level = Math.round(event.contentOffset.x / width);
+    if (level !== activeLevel) {
+      // setActiveLevel(level);
+    }
+  });
+  //return
   return (
     <>
       <Template
@@ -122,36 +160,60 @@ export default Meditations = props => {
         }>
         <View style={s.container}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={s.levelBlock}>
-              <View style={[s.circle, styles.center]}>
-                <Image source={images.levelOne} />
-              </View>
-              {activeLevel !== 0 ? (
-                <View style={[styles.center, s.closeBlock]}>
-                  <SvgXml
-                    xml={`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9V7C16 4.791 14.209 3 12 3C9.791 3 8 4.791 8 7V9" stroke="#FB593B" stroke-width="1.4031" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7 21H17C18.105 21 19 20.105 19 19V11C19 9.895 18.105 9 17 9H7C5.895 9 5 9.895 5 11V19C5 20.105 5.895 21 7 21ZM10.0001 15C9.98812 13.9 10.8881 13 11.9881 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12.0001 17C10.9001 17 10.0001 16.1 10.0001 15Z" fill="#FB593B"/></svg>`}
-                  />
-                </View>
-              ) : null}
-              <Text style={s.levelTitle}>
-                Уровень {levelCount[activeLevel]}
-              </Text>
+            <View style={s.levelBlockWrapper}>
+              <Animated.ScrollView
+                onScroll={scrollAnimated}
+                horizontal
+                pagingEnabled
+                ref={r => {
+                  scroll = r;
+                  scroll?.scrollTo({
+                    x: width * (user?.level - 1) || 0,
+                    animated: false,
+                  });
+                }}
+                scrollEventThrottle={10}
+                showsHorizontalScrollIndicator={false}>
+                {levelCount.map((v, i) => (
+                  <View key={v} style={s.levelBlock}>
+                    <View style={[s.circle, styles.center]}>
+                      <Image source={images.levelOne} />
+                    </View>
+                    {user?.level < i + 1 ? (
+                      <View style={[styles.center, s.closeBlock]}>
+                        <SvgXml
+                          xml={`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9V7C16 4.791 14.209 3 12 3C9.791 3 8 4.791 8 7V9" stroke="#FB593B" stroke-width="1.4031" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7 21H17C18.105 21 19 20.105 19 19V11C19 9.895 18.105 9 17 9H7C5.895 9 5 9.895 5 11V19C5 20.105 5.895 21 7 21ZM10.0001 15C9.98812 13.9 10.8881 13 11.9881 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12.0001 17C10.9001 17 10.0001 16.1 10.0001 15Z" fill="#FB593B"/></svg>`}
+                        />
+                      </View>
+                    ) : null}
+                    <Text style={s.levelTitle}>Уровень {v}</Text>
+                  </View>
+                ))}
+              </Animated.ScrollView>
             </View>
+
             <ScrollView
+              ref={ref => {
+                scrollTouch = ref;
+                scrollTouch?.scrollTo({
+                  x: (width * (user?.level - 1)) / 10 || 0,
+                  animated: false,
+                });
+              }}
               horizontal={true}
-              // style={{paddingVertical: 8}}
               showsHorizontalScrollIndicator={false}>
               {levelCount.map((v, i) => (
-                <TouchableOpacity
+                <View
                   onPress={() => setActiveLevel(i)}
                   key={v}
-                  style={{paddingVertical: 9}}>
-                  <View
+                  style={[{paddingVertical: 9}]}>
+                  <Animated.View
                     style={[
                       s.levelIndecator,
-                      activeLevel === i ? s.completedLevel : {},
-                    ]}></View>
-                </TouchableOpacity>
+                      // activeLevel === i ? s.completedLevel : {},
+                      rStyle(i),
+                    ]}></Animated.View>
+                </View>
               ))}
             </ScrollView>
             <View style={[styles.spaceBetween]}>
@@ -235,7 +297,7 @@ export default Meditations = props => {
             <Text style={[s.detailText, s.accessoriesTitle]}>АКСЕССУАРЫ</Text>
             {tracks.map((v, i) => (
               <TrackItem
-                disabled={level !== activeLevel}
+                disabled={user?.level < activeLevel + 1}
                 key={i}
                 trackIndex={i}
                 title={v.title}
@@ -284,18 +346,27 @@ export default Meditations = props => {
     </>
   );
 };
-
+const {width} = Dimensions.get('window');
 const s = StyleSheet.create({
   container: {
     flex: 1,
   },
-  levelBlock: {
+  levelBlockWrapper: {
+    width,
     backgroundColor: '#1D1D1D',
     borderRadius: radius,
-    paddingHorizontal: 80,
-    paddingVertical: 40,
+    // paddingHorizontal: 80,
+    // paddingVertical: 40,
     alignItems: 'center',
   },
+  levelBlock: {
+    width,
+    alignItems: 'center',
+
+    paddingHorizontal: 80,
+    paddingVertical: 40,
+  },
+
   levelTitle: {
     marginTop: 32,
     ...styles.white,
@@ -315,7 +386,7 @@ const s = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#242424',
+    backgroundColor: 'white',
     marginRight: 4,
   },
   completedLevel: {

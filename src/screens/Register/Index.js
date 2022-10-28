@@ -20,9 +20,10 @@ import {
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import Toast from 'react-native-easy-toast';
 // components
 import GoBack from '../../components/GoBack';
-import {Http, Utils, Storage} from '../../helpers/Index';
+import {Http, Utils, Storage, Toaster} from '../../helpers/Index';
 
 // styles
 import styles from '../../styles/Styles';
@@ -73,8 +74,15 @@ export default class RegisterScreen extends Component {
       if (code == 0) {
         this.setState({isemailset: true});
       } else if (code == 409) {
-        // Toaster.show('Email занят', this.toast, styles, () => {});
+        Toaster.show('Email занят.', this.toast, styles, () => {});
       }
+    } else {
+      Toaster.show(
+        'Адрес электронной почты недействителен.',
+        this.toast,
+        styles,
+        () => {},
+      );
     }
   };
 
@@ -88,12 +96,29 @@ export default class RegisterScreen extends Component {
       }
     });
   };
+  validationPassword = password => {
+    console.log({password});
+    if (password && password.length > 7 && password.length < 20) {
+      const pattern = new RegExp(`^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$`);
+      return pattern.test(password);
+    } else {
+      return false;
+    }
+  };
   checkpassword = () => {
     const {password} = this.state;
-    const ispassword = password && password.length > 3;
+    console.log('isPass', this.validationPassword(password));
+    const ispassword = this.validationPassword(password);
     this.setState({ispassword}, () => {
       if (ispassword) {
         this.scrolldown();
+      } else {
+        Toaster.show(
+          'Введите 8-20 символов, включая по крайней мере одну букву и цифру.',
+          this.toast,
+          styles,
+          () => {},
+        );
       }
     });
   };
@@ -104,6 +129,8 @@ export default class RegisterScreen extends Component {
       if (isrepeatpassword) {
         this.setState({step: 3});
         this.scrolldown();
+      } else {
+        Toaster.show('Пароли не совпадают.', this.toast, styles, () => {});
       }
     });
   };
@@ -111,7 +138,11 @@ export default class RegisterScreen extends Component {
     const {firstName} = this.state;
     const isfirstname = firstName && firstName.length > 2;
     this.setState({isfirstname}, () => {
-      if (isfirstname) this.scrolldown();
+      if (isfirstname) {
+        this.scrolldown();
+      } else {
+        Toaster.show('Введите имя.', this.toast, styles, () => {});
+      }
     });
   };
   checkLastName = () => {
@@ -121,6 +152,8 @@ export default class RegisterScreen extends Component {
       if (islastname) {
         this.setState({step: 4});
         this.scrolldown();
+      } else {
+        Toaster.show('Введите фамилию.', this.toast, styles, () => {});
       }
     });
   };
@@ -244,7 +277,7 @@ export default class RegisterScreen extends Component {
             </View>
             {this.state.isemailset ? (
               <>
-                <View style={s.message}>
+                {/* <View style={s.message}>
                   <Text
                     style={[
                       styles.text,
@@ -254,8 +287,8 @@ export default class RegisterScreen extends Component {
                     ]}>
                     На указанную электронную почту отправлен код
                   </Text>
-                </View>
-                <View style={[s.message, s.messageright, s.oneline]}>
+                </View> */}
+                {/* <View style={[s.message, s.messageright, s.oneline]}>
                   <TextInput
                     style={[
                       styles.text,
@@ -276,9 +309,9 @@ export default class RegisterScreen extends Component {
                   {this.state.iscodeset ? (
                     <SvgXml style={styles.ml5} xml={icons.check.on} />
                   ) : null}
-                </View>
+                </View> */}
                 {/* password/ */}
-                {this.state.iscodeset ? (
+                {this.state.isemailset ? (
                   <>
                     <View style={s.message}>
                       <Text
@@ -664,13 +697,21 @@ export default class RegisterScreen extends Component {
             </View>
           </View>
         </BottomSheet>
-        {/* <Toast
+        <Toast
           ref={t => (this.toast = t)}
-          style={styles.toastmessage}
+          style={[
+            styles.toastmessage,
+            {
+              backgroundColor: styles.blacklight2.color,
+              width: '80%',
+              marginLeft: 10,
+            },
+          ]}
           position={'top'}
-          positionValue={0}
+          positionValue={-13}
           fadeInDuration={2000}
-        /> */}
+          fadeOutDuration={2000}
+        />
       </View>
     );
   }

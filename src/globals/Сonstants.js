@@ -3,20 +3,24 @@
  */
 
 const isDevelopeMode = __DEV__ ? true : false;
-// const url = isDevelopeMode ? 'http://localhost:8080' : 'https://aywa.pavit.ru';
 const url = isDevelopeMode
-  ? // ? 'http://192.168.1.104:8080' //home address
-    'http://192.168.1.108:8080'
+  ? 'http://95.161.194.246:8070'
   : 'https://aywa.pavit.ru';
-// const url = isDevelopeMode ? 'https://aywa.pavit.ru' : 'https://aywa.pavit.ru'
 
 export const API = {
   url: `${url}/api/`,
   assets: `${url}/assets/`,
   key: '',
-  pushKey: '902367be-0400-4f17-832e-d9acfff94d16',
+  pushKey: 'df718918-2d47-4dc5-a033-f52be4745135',
   version: '1.0.1',
 };
+export const rarity = [
+  'Обычный',
+  'Необычный',
+  'Редкий',
+  'Епический',
+  'Легендарный',
+];
 
 export const MAPS = {
   key: 'AIzaSyCpENlGSW-VAx9UPhMFaBMLNJsPwtLh3gU',

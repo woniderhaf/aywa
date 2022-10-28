@@ -21,24 +21,21 @@ import {
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
-import moment from 'moment';
 import 'moment/locale/ru';
 
 // components
 import Template from '../../components/Template';
-
-// models
-import {User} from '../../models/Index';
+import AccessItem from '../Shop/AccessItem';
 
 // helpers
-import {App, Http, Storage, Utils} from '../../helpers/Index';
+import {App, Storage, Utils, Http} from '../../helpers/Index';
 
 // globals
-import {API, MAPS} from '../../globals/Сonstants';
+import {rarity} from '../../globals/Сonstants';
+import * as solanaWeb3 from '@solana/web3.js';
 
 // styles
 import styles from '../../styles/Styles';
-import AccessItem from '../Shop/AccessItem';
 
 // icons
 const icons = {
@@ -51,85 +48,8 @@ const icons = {
   false: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="18" rx="9" fill="#FB593B"/><path d="M11.66 6L6 11.66M11.66 11.66L6 6" stroke="#242424" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   true: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="18" rx="9" fill="#00FE00"/><path d="M5 9.736L7.167 11.903L7.153 11.889L12.042 7" stroke="#242424" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
-// vars
-const dataAccessories = [
-  {
-    id: 14,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 70,
-    level: 55,
-    number: 123123,
-    img: '',
-    category: 'accessories',
-    img: require('../Shop/Images/mat1.png'),
-  },
-  {
-    id: 15,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 55,
-    level: 55,
-    number: 12351,
-    img: '',
-    category: 'accessories',
-    img: require('../Shop/Images/mat2.png'),
-  },
-  {
-    id: 16,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 60,
-    level: 55,
-    number: 997231,
-    img: '',
-    category: 'accessories',
-    img: require('../Shop/Images/mat3.png'),
-  },
-  {
-    id: 17,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 55,
-    level: 55,
-    number: 12351,
-    img: '',
-    category: 'accessories',
-    img: require('../Shop/Images/mat4.png'),
-  },
-  {
-    id: 18,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 55,
-    level: 55,
-    number: 12351,
-    img: '',
-    category: 'accessories',
-    img: require('../Shop/Images/mat1.png'),
-  },
-  {
-    id: 19,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 55,
-    level: 55,
-    number: 12351,
-    img: '',
-    category: 'accessories',
-  },
-  {
-    id: 20,
-    name: 'Light Athletic',
-    type: 'Common',
-    price: 55,
-    level: 55,
-    number: 12351,
-    img: '',
-    category: 'accessories',
-  },
-];
-const skeletImage = require('../Shop/Images/mat4.png');
+const endpoint =
+  'https://quiet-dimensional-night.solana-mainnet.discover.quiknode.pro/4606b9a88143627ff0e89ee30f40420612e337e5/';
 
 // start
 export default class ShopDetailsScreen extends Component {
@@ -138,13 +58,15 @@ export default class ShopDetailsScreen extends Component {
     this.state = {
       user: null, // у пользователя будет телефон и почта и будет в инпуты брать оттуда значения
       data: this.props.navigation.getParam('data'),
+      balance: 0,
       loading: true,
-      dataAccessories,
+      dataAccessories: null,
       study: 1,
+      code: null,
       iscodePhone: null,
-      iscodeEmail: null,
+      iscodeEmail: true,
       codePhone: null,
-      codeEmail: null,
+      codeEmail: '0000',
       phone: '',
       email: '',
     };
@@ -154,41 +76,60 @@ export default class ShopDetailsScreen extends Component {
   study3 = null;
   componentDidMount = async () => {
     App.prepare(this.props.navigation, async user => {
+      const pubKeyWLKN = new solanaWeb3.PublicKey(
+        'GY15u1tXfrAEGfVyu9CAAzuDziwQV9L2BA99Gm19QdBH',
+      );
+      const solanaConnection = new solanaWeb3.Connection(endpoint);
+      const WLKN = await solanaConnection.getTokenAccountBalance(pubKeyWLKN);
+      let dataAccessories = await Storage.get('accessories');
+      dataAccessories = dataAccessories
+        ? await JSON.parse(dataAccessories)
+        : null;
       this.setState({
         user,
+        balance: WLKN.value.amount / 1000000000,
         phone: user.phone,
         email: user.email,
         loading: false,
+        dataAccessories,
       });
     });
   };
   goto = (link, data) => this.props.navigation.navigate(link, data);
   gotoPush = (link, data) => this.props.navigation.push(link, data);
+  checkemail = () =>
+    this.setState({isemailset: Utils.emailCheck(this.state.email)});
+  checkcode = () => {
+    const {code} = this.state;
+    const iscodeset = code && code.length === 6;
+    this.setState({iscodeset}, () => {
+      if (iscodeset) {
+        this.setState({step: 2});
+      }
+    });
+  };
 
-  panelShow = () => this.panel.snapToIndex(0);
-  panelHide = () => this.panel.close();
-  study2Hide = () => this.study2.close();
-  study3Hide = () => this.study3.close();
-  study2Show = () => this.study2.snapToIndex(0);
-  study3Show = () => this.study3.snapToIndex(0);
   next = study => {
+    console.log({study});
     this.setState({study});
     if (study === 2) {
-      this.panelHide();
-      this.study2Show();
+      this.panel.close();
+      this.study2.snapToIndex(0);
     } else if (study === 3) {
-      this.study2Hide();
-      this.study3Show();
+      this.study2.close();
+      this.study3.snapToIndex(0);
     } else if (study == 4) {
-      this.study3Hide();
+      this.study3.close();
     }
   };
   buy = async () => {
+    console.log('buy');
     if (this.state.codeEmail && this.state.codePhone) {
       const res = await Http.post('mat/buy', {
         id: this.state.user._id,
         data: this.state.data,
       });
+      console.log({res});
       if (res) {
         this.setState({user: res});
         Storage.set('user', res);
@@ -231,8 +172,8 @@ export default class ShopDetailsScreen extends Component {
   };
   sendCodePhone = async () => {
     const res = await Http.post(`user/${this.state.phone}/restore`);
-    console.log(res);
   };
+
   render() {
     const {data} = this.state;
     return (
@@ -243,9 +184,10 @@ export default class ShopDetailsScreen extends Component {
           navigation={this.props.navigation}
           isheader={true}
           isinner={true}
+          isinnerHeight={true}
           loading={this.state.loading}
           headerContext={
-            <View style={[s.tab, styles.center, {height: 40}]}>
+            <View style={[s.tab, s.center, {height: 40}]}>
               <Text style={[styles.white, styles.mr5, {paddingLeft: 5}]}>
                 lvl
               </Text>
@@ -256,16 +198,18 @@ export default class ShopDetailsScreen extends Component {
             <View style={s.container}>
               <ScrollView contentContainerStyle={s.item}>
                 <Image
-                  source={this.state.data.image || skeletImage}
-                  style={s.imgSkelet}
+                  source={{
+                    uri: `data:image/png;base64,${this.state.data.image}`,
+                  }}
+                  style={[s.imgSkelet]}
                 />
                 <Text style={[s.name]}>{data.name}</Text>
-                <Text style={s.type}>{data.type}</Text>
+                <Text style={s.type}>{rarity[data.rare]}</Text>
                 <TouchableOpacity
                   style={s.category}
                   onPress={() =>
-                    this.goto('ShopCategories', {
-                      data: [],
+                    this.gotoPush('ShopCategories', {
+                      data: this.state.dataAccessories,
                       category: 'accessories',
                       title: 'Аксессуары',
                     })
@@ -283,7 +227,7 @@ export default class ShopDetailsScreen extends Component {
                   <SvgXml xml={icons.next} />
                 </TouchableOpacity>
                 <View style={s.wrapperAccessories}>
-                  {this.state.dataAccessories.slice(0, 4).map((v, i) => (
+                  {this.state.dataAccessories?.slice(0, 4).map((v, i) => (
                     <AccessItem key={i} v={v} goto={this.gotoPush} />
                   ))}
                 </View>
@@ -294,12 +238,12 @@ export default class ShopDetailsScreen extends Component {
                     {data.cost} <Text>AW</Text>
                   </Text>
                   <Text style={[s.balance]}>
-                    Баланс: <Text>{this.state.user.balance}</Text> AW
+                    Баланс: <Text>{this.state.balance}</Text> AW
                   </Text>
                 </View>
                 <TouchableOpacity
                   style={[s.tab, s.buttonBy]}
-                  onPress={() => this.panelShow()}>
+                  onPress={() => this.panel.snapToIndex(0)}>
                   <Text style={[styles.text, {textAlign: 'center'}]}>
                     Купить
                   </Text>
@@ -311,7 +255,7 @@ export default class ShopDetailsScreen extends Component {
         <BottomSheet
           ref={r => (this.panel = r)}
           index={-1}
-          snapPoints={[this.state.user?.balance < data.price ? 360 : 323]}
+          snapPoints={[this.state.balance < data.price ? 360 : 323]}
           backgroundStyle={{backgroundColor: '#0F0F0F', borderRadius: 36}}
           handleComponent={null}
           enablePanDownToClose={true}
@@ -330,7 +274,7 @@ export default class ShopDetailsScreen extends Component {
               <View style={s.rowSB}>
                 <Text style={s.blockByText}>Баланс</Text>
                 <Text style={[s.blockByText, styles.white]}>
-                  AW {this.state.user?.balance}
+                  AW {this.state.balance}
                 </Text>
               </View>
               <View style={s.hr}></View>
@@ -340,19 +284,19 @@ export default class ShopDetailsScreen extends Component {
                   AW {data.cost}
                 </Text>
               </View>
-              {this.state.user?.balance < data.price ? (
+              {this.state.balance < data.price ? (
                 <>
                   <View style={s.hr}></View>
                   <View style={s.rowSB}>
                     <Text style={s.blockByText}>Недостаточно</Text>
                     <Text style={[s.blockByText, {color: '#FB593B'}]}>
-                      AW {Number(data.cost) - this.state.user?.balance}
+                      AW {Number(data.cost) - this.state.balance}
                     </Text>
                   </View>
                 </>
               ) : null}
             </View>
-            {this.state.user?.balance < data.cost ? (
+            {this.state.balance < data.cost ? (
               <TouchableOpacity style={[s.tab, s.next]}>
                 <Text style={[styles.white, s.nextText]}>Пополнить</Text>
               </TouchableOpacity>
@@ -371,9 +315,6 @@ export default class ShopDetailsScreen extends Component {
           snapPoints={[600]}
           backgroundStyle={{backgroundColor: '#0F0F0F', borderRadius: 36}}
           handleComponent={null}
-          onChange={e =>
-            e === -1 ? this.setState({phone: '', email: '', code: null}) : {}
-          }
           enablePanDownToClose={true}
           backdropComponent={p => (
             <BottomSheetBackdrop
@@ -390,7 +331,7 @@ export default class ShopDetailsScreen extends Component {
               <View style={s.rowSB}>
                 <TextInput
                   style={[styles.text, styles.boldmore, s.input]}
-                  defaultValue={this.state.data?.phone || null}
+                  defaultValue={this.state.user?.phone || null}
                   onChangeText={phone => this.setState({phone})}
                   autoCorrect={false}
                   maxLength={11}
@@ -400,7 +341,7 @@ export default class ShopDetailsScreen extends Component {
                   placeholderTextColor={styles.brown.color}
                   underlineColorAndroid={'transparent'}
                 />
-                {Utils.phoneClear(this.state.phone)?.length === 11 ? (
+                {Utils.phoneClear(this.state.user?.phone)?.length === 11 ? (
                   <TouchableOpacity
                     style={[s.blockByText]}
                     onPress={this.sendCodePhone}>
@@ -418,9 +359,8 @@ export default class ShopDetailsScreen extends Component {
               </View>
               <View style={s.hr}></View>
               <View style={s.rowSB}>
-                {/* codePhone */}
                 <TextInput
-                  style={[styles.text, styles.boldmore, s.input, s.inputcode]}
+                  style={[styles.text, styles.boldmore, s.inputcode, s.input]}
                   value={this.state.codePhone}
                   onChangeText={this.changeCodePhone}
                   maxLength={4}
@@ -472,7 +412,7 @@ export default class ShopDetailsScreen extends Component {
               <View style={s.hr}></View>
               <View style={s.rowSB}>
                 <TextInput
-                  style={[styles.text, styles.boldmore, s.input, s.inputcode]}
+                  style={[styles.text, styles.boldmore, s.inputcode, s.input]}
                   value={this.state.codeEmail}
                   onChangeText={this.changeCodeEmail}
                   maxLength={4}
@@ -493,13 +433,14 @@ export default class ShopDetailsScreen extends Component {
                   )
                 ) : null}
               </View>
-              {this.state.user?.balance < data.cost ? (
+              {this.state.balance < data.cost ? (
                 <>
                   <View style={s.hr}></View>
                   <View style={s.rowSB}>
                     <Text style={s.blockByText}>Недостаточно</Text>
                     <Text style={[s.blockByText, {color: '#FB593B'}]}>
-                      AW {Number(data.cost) - this.state.user?.balance}
+                      AW {Number(data.price) - this.state.balance}
+                      AW {Number(data.cost) - this.state.balance}
                     </Text>
                   </View>
                 </>
@@ -577,10 +518,6 @@ const s = StyleSheet.create({
   item: {
     alignItems: 'center',
   },
-  input: {
-    ...styles.input,
-    flex: 1,
-  },
   center: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -657,6 +594,10 @@ const s = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 2,
   },
+  input: {
+    ...styles.input,
+    flex: 1,
+  },
   balance: {
     color: '#5B5B5B',
     fontSize: 12,
@@ -684,15 +625,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     width,
-  },
-  existNickname: {
-    ...styles.white,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    textAlign: 'center',
-    borderRadius: 22,
-    backgroundColor: '#313131',
-    marginRight: 8,
   },
   indicator: {
     backgroundColor: '#242424',
@@ -725,5 +657,14 @@ const s = StyleSheet.create({
   },
   buttonsblock: {
     marginBottom: marginTop ? 50 : 30,
+  },
+  existNickname: {
+    ...styles.white,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    textAlign: 'center',
+    borderRadius: 22,
+    backgroundColor: '#313131',
+    marginRight: 8,
   },
 });

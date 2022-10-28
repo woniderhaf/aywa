@@ -10,33 +10,25 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
-  Alert,
-  Linking,
   PermissionsAndroid,
   Image,
   Platform,
   StatusBar,
   ImageBackground,
-  Vibration,
+  NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
 
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
-import moment from 'moment';
 import 'moment/locale/ru';
-import LinearGradient from 'react-native-linear-gradient';
-import InstaStory from 'react-native-insta-story';
+import BleManager from 'react-native-ble-manager';
 // components
 import Template from '../../components/Template';
 
-// models
-import {User} from '../../models/Index';
-
 // helpers
-import {App, Storage, Utils} from '../../helpers/Index';
-
-import {MAPS} from '../../globals/Сonstants';
+import {App, Http, Storage, Utils} from '../../helpers/Index';
 
 // styles
 import styles from '../../styles/Styles';
@@ -55,230 +47,6 @@ const images = {
   watch: require('./Images/watch.png'),
   bgButton: require('./Images/bgButton.png'),
 };
-// vars
-stories = [
-  require('./Images/stories/1.png'),
-  require('./Images/stories/2.png'),
-];
-const data = [
-  // {
-  //   user_id: 1,
-  //   user_image:
-  //     'https://pbs.twimg.com/profile_images/1222140802475773952/61OmyINj.jpg',
-  //   user_name: 'Ahmet Çağlar Durmuş',
-  //   stories: [
-  //     {
-  //       story_id: 1,
-  //       story_image: stories[0].src,
-  //       swipeText: 'Custom swipe text for this story',
-  //       onPress: () => console.log('story 1 swiped'),
-  //     },
-  //     {
-  //       story_id: 2,
-  //       story_image:
-  //         'https://image.freepik.com/free-vector/mobile-wallpaper-with-fluid-shapes_79603-601.jpg',
-  //     },
-  //   ],
-  // },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://sun9-east.userapi.com/sun9-35/s/v1/ig2/VJotuXMnf9HnG6811fqvFgesa2efWxtIlDlpMXizcGa9lJfm3sK6DJE_Y0e-Lm77snXupfF2GSftMi-PCweWLhEd.jpg?size=1080x1440&quality=96&type=album',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-  {
-    user_id: 2,
-    user_image:
-      'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZmlsZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
-    user_name: 'Test User',
-    stories: [
-      {
-        story_id: 1,
-        story_image:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjORKvjcbMRGYPR3QIs3MofoWkD4wHzRd_eg&usqp=CAU',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 1 swiped'),
-      },
-      {
-        story_id: 2,
-        story_image:
-          'https://files.oyebesmartest.com/uploads/preview/vivo-u20-mobile-wallpaper-full-hd-(1)qm6qyz9v60.jpg',
-        swipeText: 'Custom swipe text for this story',
-        onPress: () => console.log('story 2 swiped'),
-      },
-    ],
-  },
-];
 
 // start
 export default class MainScreen extends Component {
@@ -292,14 +60,90 @@ export default class MainScreen extends Component {
       meditation: true,
       isSearchDevices: false,
       visibleStories: false,
+      stories: null,
+      seenStories: [],
+      isScanning: false,
+      list: [],
+      peripherals: [],
     };
   }
+  peripherals = new Map();
   panel = null;
   searchDevice = null;
   componentDidMount = async () => {
     App.prepare(this.props.navigation, async user => {
-      this.setState({user, loading: false});
+      BleManager.start({showAlert: false});
+      let stories = await Http.get('story/get');
+      let seenStories = user.seenStories;
+      seenStories = stories.map(item =>
+        seenStories.find(v => v === item._id)
+          ? {...item, seen: true}
+          : {...item, seen: false},
+      );
+      const viewStories = seenStories.filter(v => v.seen);
+      const unViewStories = seenStories.filter(v => !v.seen);
+      stories = [...unViewStories, ...viewStories];
+
+      this.setState({
+        user,
+        loading: false,
+        stories,
+      });
     });
+
+    this.BleManagerEmitter.addListener(
+      'BleManagerDiscoverPeripheral',
+      this.handleDiscoverPeripheral,
+    );
+    // this.BleManagerEmitter.addListener(
+    //   'BleManagerStopScan',
+    //   this.handleStopScan,
+    // );
+    // this.BleManagerEmitter.addListener(
+    //   'BleManagerDisconnectPeripheral',
+    //   this.handleDisconnectedPeripheral,
+    // );
+    // this.BleManagerEmitter.addListener(
+    //   'BleManagerDidUpdateValueForCharacteristic',
+    //   this.handleUpdateValueForCharacteristic,
+    // );
+
+    if (Platform.OS === 'android' && Platform.Version >= 23) {
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ).then(result => {
+        if (result) {
+          console.log('Permission is OK');
+        } else {
+          PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          ).then(result => {
+            if (result) {
+              console.log('User accept');
+            } else {
+              console.log('User refuse');
+            }
+          });
+        }
+      });
+      // PermissionsAndroid.check(
+      //   PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+      // ).then(result => {
+      //   if (result) {
+      //     console.log('scan is OK');
+      //   } else {
+      //     PermissionsAndroid.request(
+      //       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+      //     ).then(result => {
+      //       if (result) {
+      //         console.log('scan ok');
+      //       } else {
+      //         console.log('scan refuse');
+      //       }
+      //     });
+      //   }
+      // });
+    }
   };
   goto = (link, data) => this.props.navigation.navigate(link, data);
 
@@ -310,38 +154,148 @@ export default class MainScreen extends Component {
     this.panel.close();
     this.searchDevice.snapToIndex(0);
   };
+  // scanPermissonFine = async () => {
+  //   try {
+  //     const granted = await PermissionsAndroid.request(
+  //       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //       {
+  //         title: 'Разрешения сканирования устройств',
+  //         message: 'Требуется доступ к блютузу',
+  //         buttonNegative: 'Отмена',
+  //         buttonPositive: 'ОК',
+  //       },
+  //     );
+  //     console.log({granted});
+  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //       console.log('ble permission granted');
+  //     } else {
+  //       console.log('ble permission denied');
+  //     }
+  //   } catch (err) {
+  //     console.warn(err);
+  //   }
+  // };
+  // scanPermissonScan = async () => {
+  //   try {
+  //     const granted = await PermissionsAndroid.request(
+  //       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+  //       {
+  //         title: 'Разрешения сканирования устройств',
+  //         message: 'Требуется доступ к блютузу',
+  //         buttonNegative: 'Отмена',
+  //         buttonPositive: 'ОК',
+  //       },
+  //     );
+  //     console.log({granted});
+  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //       console.log('ble permission granted');
+  //     } else {
+  //       console.log('ble permission denied');
+  //     }
+  //   } catch (err) {
+  //     console.warn(err);
+  //   }
+  // };
+  // scanPermissonCoarse = async () => {
+  //   try {
+  //     const granted = await PermissionsAndroid.request(
+  //       PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+  //       {
+  //         title: 'Разрешения сканирования устройств',
+  //         message: 'Требуется доступ к блютузу',
+  //         buttonNegative: 'Отмена',
+  //         buttonPositive: 'ОК',
+  //       },
+  //     );
+  //     console.log({granted});
+  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //       console.log('ble permission granted');
+  //     } else {
+  //       console.log('ble permission denied');
+  //     }
+  //   } catch (err) {
+  //     console.warn(err);
+  //   }
+  // };
   handlPlug = async () => {
     // клик на подключение устройства
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        {
-          title: 'Cool Photo App Camera Permission',
-          message:
-            'Cool Photo App needs access to your camera ' +
-            'so you can take awesome pictures.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        this.setState({access: true, isSearchDevices: true}, () => {
-          this.searchDevices();
+    // await this.scanPermissonCoarse();
+    // await this.scanPermissonFine();
+    // await this.scanPermissonScan();
+    this.setState({isSearchDevices: true}, () => {
+      this.searchDevices();
+    });
+  };
+  BleManagerModule = NativeModules.BleManager;
+  BleManagerEmitter = new NativeEventEmitter(this.BleManagerModule);
+  startScan = () => {
+    if (!this.state.isScanning) {
+      BleManager.scan([], 3, true)
+        .then(results => {
+          console.log('Scanning...');
+          this.setState({isScanning: true});
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
+  };
+  handleStopScan = e => {
+    console.log('Scan is stopped');
+    this.setState({isScanning: false});
+  };
+  handleDiscoverPeripheral = peripheral => {
+    if (peripheral.name) {
+      if (this.state.peripherals.length) {
+        this.state.peripherals.forEach((v, i) => {
+          if (v.id !== peripheral.id) {
+            this.setState({
+              peripherals: [...this.state.peripherals, peripheral],
+            });
+          }
         });
       } else {
-        console.log('ble permission denied');
+        this.setState({peripherals: [...this.state.peripherals, peripheral]});
       }
-    } catch (err) {
-      console.warn(err);
     }
+
+    // setList(Array.from(peripherals.values()));
+    // this.setState({list: Array.from(peripherals.values())});
+  };
+  handleUpdateValueForCharacteristic = data => {
+    console.log(
+      'Received data from ' +
+        data.peripheral +
+        ' characteristic ' +
+        data.characteristic,
+      data.value,
+    );
+  };
+  handleDisconnectedPeripheral = data => {
+    // let peripheral = peripherals.get(data.peripheral);
+    // if (peripheral) {
+    // peripheral.connected = false;
+    // this.peripherals.set(peripheral.id, peripheral);
+    console.log('peripheral disconnected');
+    console.log(data);
+    this.setState({errorConnect: true});
+  };
+  setUser = user => {
+    this.setState({user});
+    Storage.set('user', user);
   };
   render() {
     return (
       <>
         <Template
           title={
-            this.state.user ? `Добрый день, ${this.state.user.firstName}` : ''
+            this.state.user
+              ? `Добрый день, ${
+                  this.state.user.firstName.length > 6
+                    ? `${this.state.user.firstName.slice(0, 6)}...`
+                    : this.state.user.firstName
+                }`
+              : ''
           }
           styles={styles}
           page={'Main'}
@@ -366,10 +320,15 @@ export default class MainScreen extends Component {
             </TouchableOpacity>
           }
           loading={this.state.loading}>
+          <StatusBar backgroundColor={'#090909'} />
           {this.state.loading ? null : (
             <View style={s.container}>
               <ScrollView style={s.list} showsVerticalScrollIndicator={false}>
-                <Stories />
+                <Stories
+                  stories={this.state.stories}
+                  user={this.state.user}
+                  setUser={this.setUser}
+                />
 
                 <TouchableOpacity
                   style={s.category}
@@ -500,7 +459,9 @@ export default class MainScreen extends Component {
           handleComponent={null}
           enablePanDownToClose={true}
           onChange={e => {
-            e === -1 ? this.setState({isSearchDevices: false}) : null;
+            e === -1
+              ? this.setState({isSearchDevices: false, peripherals: []})
+              : null;
           }}
           backdropComponent={p => (
             <BottomSheetBackdrop
@@ -511,7 +472,13 @@ export default class MainScreen extends Component {
               appearsOnIndex={0}
             />
           )}>
-          {this.state.isSearchDevices && <SearchDevice />}
+          {this.state.isSearchDevices && (
+            <SearchDevice
+              peripherals={this.state.peripherals}
+              errorConnect={this.state.errorConnect}
+              BleManagerEmitter={this.BleManagerEmitter}
+            />
+          )}
         </BottomSheet>
       </>
     );
@@ -557,6 +524,7 @@ const s = StyleSheet.create({
     borderRadius: 36,
     paddingHorizontal: 16,
     paddingVertical: 24,
+    width,
   },
   openLevel: {
     flexDirection: 'row',

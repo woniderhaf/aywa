@@ -16,11 +16,18 @@ import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedStyle,
+  withTiming,
+  useSharedValue,
+} from 'react-native-reanimated';
 import * as ImagePicker from 'react-native-image-picker';
 import {SvgXml} from 'react-native-svg';
 import InputDate from '../../components/InputDate';
 import Template from '../../components/Template';
-import {User} from '../../models/Index';
+import {User, Sms} from '../../models/Index';
 import {App, Storage} from '../../helpers/Index';
 import styles from '../../styles/Styles';
 import {nicknamePrepare} from '../../models/User';
@@ -69,12 +76,10 @@ export default PersonalData = props => {
   const [isOldPassword, setIsOldPassword] = useState(null);
   const [repeatNewPassword, setRepeatNewPassword] = useState('');
   const [passwordMatched, setPasswordMatched] = useState(null);
-  const [image, setImage] = useState(null);
   useEffect(() => {
     App.prepare(props.navigation, async userStorage => {
       setUser(userStorage);
       setUserUpdate(userStorage);
-
       setLoading(false);
     });
     return () => clearTimeout(timeOutRepeatCode());
@@ -122,7 +127,6 @@ export default PersonalData = props => {
       } else if (response.error) {
       } else if (response.customButton) {
       } else {
-        let uri = {uri: response.assets[0].uri};
         const base64 = response.assets[0].base64;
         saveImage(base64);
 
@@ -148,8 +152,13 @@ export default PersonalData = props => {
   };
   const saveImage = async image => {
     setUser({...user, image});
-    // await User.update({id: user._id, data: {image}});
+    await User.update({id: user._id, data: {...user, image}});
     Storage.set('user', {...user, image});
+  };
+  const deleteImage = async () => {
+    setUser({...user, image: ''});
+    await User.update({id: user._id, data: {...user, image: ''}});
+    Storage.set('user', {...user, image: ''});
   };
   const firstNameShow = () => {
     firstName.snapToIndex(0);
@@ -181,9 +190,9 @@ export default PersonalData = props => {
     const res = await User.update({id: user._id, data: userUpdate});
     Storage.set('user', userUpdate);
     setUser(userUpdate);
-    console.log({res});
     name.close();
   };
+
   const updateNickame = async nickname => {
     setUserUpdate({...userUpdate, nickname});
     if (user.nickname == userUpdate.nickname) {
@@ -199,15 +208,14 @@ export default PersonalData = props => {
   const savePhone = () => {
     if (isCheckCode) {
       saveData(phone);
+      Sms.smsDelete(userUpdate.phone);
       changePhone.snapToIndex(0);
     } else {
       Alert.alert('неверный код');
     }
   };
   const logout = () => {
-    Storage.set('token', null);
-    Storage.set('user', null);
-    Storage.set('startScreen', 'Start');
+    Storage.clear();
     props.navigation.navigate('Start');
   };
   const timeOutRepeatCode = () => {
@@ -220,12 +228,14 @@ export default PersonalData = props => {
     setIsrepeatCode(false);
 
     // await User.restore.prepare(userUpdate.phone);
+    await Sms.restore(userUpdate.phone);
     timeOutRepeatCode();
   };
   const checkCode = async Code => {
-    const {code} = await User.restore.check(userUpdate.phone, Code);
+    // const {code} = await User.restore.check(userUpdate.phone, Code);
+    const {code} = await Sms.check(userUpdate.phone, Code);
     console.log({code});
-    if (!code) {
+    if (code === 0) {
       setCheckCode(true);
     } else {
       setCheckCode(false);
@@ -241,6 +251,7 @@ export default PersonalData = props => {
       }
     }
   };
+
   //checkPassword
   const checkPassword = async () => {
     passwordShow();
@@ -311,10 +322,33 @@ export default PersonalData = props => {
                     />
                   </View>
                   <View style={s.avatar}>
-                    <Image
-                      style={{width: 100, height: 100, borderRadius: 100}}
-                      source={{uri: `data:image/png;base64,${user.image}`}}
-                    />
+                    {user?.image ? (
+                      <Image
+                        style={{width: 100, height: 100, borderRadius: 100}}
+                        source={{uri: `data:image/png;base64,${user.image}`}}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          {
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            borderRadius: 50,
+                            width: 100,
+                            height: 100,
+                          },
+                          styles.center,
+                        ]}>
+                        <Text
+                          style={{
+                            color: 'white',
+                            textAlign: 'center',
+                            fontSize: 30,
+                            fontWeight: '500',
+                          }}>
+                          {user.firstName.slice(0, 1)}
+                        </Text>
+                      </View>
+                    )}
                     <View style={s.settings}>
                       <TouchableOpacity onPress={modalSettings}>
                         <SvgXml xml={icons.settings} />
@@ -324,6 +358,7 @@ export default PersonalData = props => {
                 </View>
                 <View style={s.bottomBlock}>
                   <InputDate
+                    key={'firstName'}
                     title={'Имя'}
                     data={user.firstName}
                     type="firstName"
@@ -334,17 +369,20 @@ export default PersonalData = props => {
                     data={user.lastName}
                     panelShow={lastNameShow}
                     type="lastName"
+                    key="lastName"
                   />
                   <InputDate
                     title={'Никнейм'}
                     data={user.nickname}
                     type="nickname"
+                    key="nickname"
                     panelShow={nicknameShow}
                   />
                   <InputDate
                     title={'Номер телефона'}
                     data={user.phone}
                     type="phone"
+                    key="phone"
                     panelShow={phoneShow}
                   />
                   <InputDate
@@ -352,11 +390,13 @@ export default PersonalData = props => {
                     data={user.email}
                     panelShow={emailShow}
                     type={'email'}
+                    key={'email'}
                   />
                   <InputDate
                     title={'Пароль учетной записи'}
                     data={user.password}
                     type="password"
+                    key="password"
                     panelShow={passwordShow}
                     end
                   />
@@ -704,6 +744,7 @@ export default PersonalData = props => {
                 <BottomSheetTextInput
                   onBlur={() => phone.snapToIndex(0)}
                   defaultValue={user.phone}
+                  maxLength={11}
                   onChangeText={phone => setUserUpdate({...userUpdate, phone})}
                   keyboardType={'number-pad'}
                   placeholder={'Введите номер'}
@@ -728,10 +769,14 @@ export default PersonalData = props => {
                       Отправить код повторно
                     </Text>
                   </TouchableOpacity>
-                ) : (
+                ) : userUpdate.phone.length === 11 ? (
                   <TouchableOpacity onPress={sendCode}>
                     <Text style={s.sendCODText}>Отправить код</Text>
                   </TouchableOpacity>
+                ) : (
+                  <View style={{opacity: 0.2}}>
+                    <Text style={s.sendCODText}>Отправить код</Text>
+                  </View>
                 )}
               </View>
               <View style={[s.hr, s.hrLigth]}></View>
@@ -759,9 +804,15 @@ export default PersonalData = props => {
                 ) : null}
               </View>
             </View>
-            <TouchableOpacity style={s.saveBtn} onPress={savePhone}>
-              <Text style={s.saveText}>Изменить</Text>
-            </TouchableOpacity>
+            {isCheckCode ? (
+              <TouchableOpacity style={s.saveBtn} onPress={savePhone}>
+                <Text style={s.saveText}>Изменить</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={[s.saveBtn, {opacity: 0.2}]}>
+                <Text style={s.saveText}>Изменить</Text>
+              </View>
+            )}
           </View>
         )}
       </BottomSheet>
@@ -797,7 +848,7 @@ export default PersonalData = props => {
               <Text style={s.settingsText}>Сделать фото</Text>
             </TouchableOpacity>
             <View style={s.hr}></View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={deleteImage}>
               <Text style={[s.settingsText, s.removeImage]}>Удалить фото</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -920,7 +971,8 @@ const s = StyleSheet.create({
     paddingBottom: 24,
   },
   headerBlock: {
-    paddingTop: 18,
+    // paddingTop: 18,
+    paddingTop: 38,
     paddingHorizontal: 16,
     paddingBottom: 32,
     borderRadius: radius,
@@ -957,7 +1009,7 @@ const s = StyleSheet.create({
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     backgroundColor: '#242424',
-    height: height - 100,
+    height: height > 800 ? height - 150 : height < 700 ? height : height - 100,
   },
   changeTitle: {
     backgroundColor: '#242424',
@@ -1112,6 +1164,7 @@ const s = StyleSheet.create({
     padding: 10,
     paddingLeft: 0,
     marginTop: 40,
+    width: 60,
   },
   logoutText: {
     color: '#5b5b5b',

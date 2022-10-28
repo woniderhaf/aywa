@@ -34,10 +34,16 @@ import {App, Http, Storage, Utils} from '../../helpers/Index';
 
 // globals
 import {API, MAPS} from '../../globals/Сonstants';
-
 // styles
 import styles from '../../styles/Styles';
 import CardItem from './CardItem';
+import CardItemLoader from './CardItemLoader';
+import Animated, {
+  FadeInLeft,
+  FadeInRight,
+  SlideInLeft,
+  SlideInRight,
+} from 'react-native-reanimated';
 
 // icons
 const icons = {
@@ -61,17 +67,32 @@ export default class ShopScreen extends Component {
       accessories: null,
     };
   }
+  ree = [1, 2, 3];
 
   componentDidMount = async () => {
     App.prepare(this.props.navigation, async user => {
-      const mats = await Http.get('mat/add');
-      const accessories = await Http.get('accessory/add');
-      this.setState({user: user, loading: false, mats, accessories});
+      let mats = await Http.get('mat/add');
+      let accessories = await Http.get('accessory/add');
+      mats = mats.filter((v, i) =>
+        user.NFT.find(item => item._id === v._id) ? false : v,
+      );
+      accessories = accessories.filter((v, i) =>
+        user.NFT.find(item => item._id === v._id) ? false : v,
+      );
+
+      Storage.set('mats', mats);
+      Storage.set('accessories', accessories);
+      this.setState({
+        user,
+        loading: false,
+        mats,
+        accessories,
+      });
+      // this.setState({user: user, mats, accessories});
     });
   };
   goto = (link, data) => this.props.navigation.navigate(link, data);
   tabSet = tab => this.setState({tab});
-
   render() {
     return (
       <>
@@ -80,135 +101,155 @@ export default class ShopScreen extends Component {
           styles={styles}
           page={'Shop'}
           navigation={this.props.navigation}
-          isheader={true}
-          loading={this.state.loading}>
-          {this.state.loading ? null : (
-            <View style={s.container}>
-              <View style={s.tabs}>
-                <TouchableOpacity
-                  style={[s.tab, this.state.tab === 1 ? s.tabactive : null]}
-                  onPress={() => this.tabSet(1)}>
-                  <Text style={[styles.text, styles.middle, styles.bold]}>
-                    Все NFT
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[s.tab, this.state.tab === 2 ? s.tabactive : null]}
-                  onPress={() => this.tabSet(2)}>
-                  <Text style={[styles.text, styles.middle, styles.bold]}>
-                    Боксы
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[s.tab, this.state.tab === 3 ? s.tabactive : null]}
-                  onPress={() => this.tabSet(3)}>
-                  <Text style={[styles.text, styles.middle, styles.bold]}>
-                    Мои NFT
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView>
-                {this.state.tab === 1 && (
-                  <>
-                    <TouchableOpacity
-                      style={s.category}
-                      onPress={() =>
-                        this.goto('ShopCategories', {
-                          data: this.state.mats,
-                          category: 'mat',
-                          title: 'Коврики NFT',
-                        })
-                      }>
-                      <Text
-                        style={[
-                          styles.text,
-                          styles.middle,
-                          styles.boldlight,
-                          styles.brown,
-                          styles.upper,
-                        ]}>
-                        Коврики NFT
-                      </Text>
-                      <SvgXml xml={icons.next} />
-                    </TouchableOpacity>
-                    <View style={s.items}>
-                      {this.state.mats.slice(0, 2).map((v, i) => (
-                        <CardItem key={i} v={v} goto={this.goto} type={'mat'} />
-                      ))}
-                    </View>
-
-                    <TouchableOpacity
-                      style={s.category}
-                      onPress={() =>
-                        this.goto('ShopCategories', {
-                          data: this.state.accessories,
-                          category: 'accessories',
-                          title: 'Аксессуары',
-                        })
-                      }>
-                      <Text
-                        style={[
-                          styles.text,
-                          styles.middle,
-                          styles.boldlight,
-                          styles.brown,
-                          styles.upper,
-                        ]}>
-                        Аксессуары
-                      </Text>
-                      <SvgXml xml={icons.next} />
-                    </TouchableOpacity>
-                    <View style={s.items}>
-                      {this.state.accessories.slice(0, 2).map((v, i) => (
-                        <CardItem
-                          key={i}
-                          v={v}
-                          goto={this.goto}
-                          type={'category'}
-                        />
-                      ))}
-                    </View>
-                  </>
-                )}
-                {this.state.tab === 3 && (
-                  <>
-                    {this.state.user.NFT.length ? (
+          isheader={true}>
+          {/* // loading={this.state.loading}>{this.state.loading ? null : ( */}
+          <View style={s.container}>
+            <View style={s.tabs}>
+              <TouchableOpacity
+                style={[s.tab, this.state.tab === 1 ? s.tabactive : null]}
+                onPress={() => this.tabSet(1)}>
+                <Text style={[styles.text, styles.middle, styles.bold]}>
+                  Все NFT
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.tab, this.state.tab === 2 ? s.tabactive : null]}
+                onPress={() => this.tabSet(2)}>
+                <Text style={[styles.text, styles.middle, styles.bold]}>
+                  Боксы
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.tab, this.state.tab === 3 ? s.tabactive : null]}
+                onPress={() => this.tabSet(3)}>
+                <Text style={[styles.text, styles.middle, styles.bold]}>
+                  Мои NFT
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {this.state.tab === 1 && (
+                <Animated.View entering={SlideInLeft}>
+                  <TouchableOpacity
+                    style={s.category}
+                    onPress={() =>
+                      this.goto('ShopCategories', {
+                        data: this.state.mats,
+                        category: 'mat',
+                        title: 'Коврики NFT',
+                      })
+                    }>
+                    <Text
+                      style={[
+                        styles.text,
+                        styles.middle,
+                        styles.boldlight,
+                        styles.brown,
+                        styles.upper,
+                      ]}>
+                      Коврики NFT
+                    </Text>
+                    <SvgXml xml={icons.next} />
+                  </TouchableOpacity>
+                  <View style={s.items}>
+                    {this.state.loading ? (
                       <>
-                        {this.state.user.NFT.map((v, i) => {
-                          return (
-                            <View style={s.items}>
-                              <CardItem
-                                v={v}
-                                key={toString(i)}
-                                goto={this.goto}
-                                type={'mat'}
-                              />
-                            </View>
-                          );
-                        })}
+                        <CardItemLoader />
+                        <CardItemLoader />
                       </>
                     ) : (
-                      <View>
-                        <Text
-                          style={[
-                            styles.white,
-                            {
-                              marginTop: 250,
-                              textAlign: 'center',
-                              color: '#5b5b5b',
-                            },
-                            styles.textlarge,
-                          ]}>
-                          У вас пока что нет NFT
-                        </Text>
-                      </View>
+                      this.state.mats
+                        .slice(0, 2)
+                        .map((v, i) => (
+                          <CardItem
+                            key={v._id}
+                            v={v}
+                            goto={this.goto}
+                            type={'mat'}
+                          />
+                        ))
                     )}
-                  </>
-                )}
-                <View style={s.lastrowlarge}></View>
-              </ScrollView>
-            </View>
-          )}
+                  </View>
+
+                  <TouchableOpacity
+                    style={s.category}
+                    onPress={() =>
+                      this.goto('ShopCategories', {
+                        data: this.state.accessories,
+                        category: 'accessories',
+                        title: 'Аксессуары',
+                      })
+                    }>
+                    <Text
+                      style={[
+                        styles.text,
+                        styles.middle,
+                        styles.boldlight,
+                        styles.brown,
+                        styles.upper,
+                      ]}>
+                      Аксессуары
+                    </Text>
+                    <SvgXml xml={icons.next} />
+                  </TouchableOpacity>
+                  <View style={s.items}>
+                    {this.state.loading ? (
+                      <>
+                        <CardItemLoader />
+                        <CardItemLoader />
+                      </>
+                    ) : (
+                      this.state.accessories
+                        ?.slice(0, 2)
+                        .map((v, i) => (
+                          <CardItem
+                            key={v._id}
+                            v={v}
+                            goto={this.goto}
+                            type={'category'}
+                          />
+                        ))
+                    )}
+                  </View>
+                </Animated.View>
+              )}
+              {this.state.tab === 3 && (
+                <Animated.View entering={SlideInRight} onTouchEnd>
+                  {this.state.user.NFT.length ? (
+                    <>
+                      <View style={[s.items, {marginTop: 54}]}>
+                        {this.state.user.NFT.map((v, i) => (
+                          <CardItem
+                            v={v}
+                            key={v._id}
+                            goto={this.goto}
+                            type={'mat'}
+                          />
+                        ))}
+                      </View>
+                    </>
+                  ) : (
+                    <View>
+                      <Text
+                        style={[
+                          styles.white,
+                          {
+                            marginTop: 250,
+                            textAlign: 'center',
+                            color: '#5b5b5b',
+                          },
+                          styles.textlarge,
+                        ]}>
+                        У вас пока что нет NFT
+                      </Text>
+                    </View>
+                  )}
+                </Animated.View>
+              )}
+              <View style={s.lastrowlarge}></View>
+            </ScrollView>
+          </View>
+          {/* )} */}
         </Template>
         <BottomSheet
           ref={r => (this.panel = r)}

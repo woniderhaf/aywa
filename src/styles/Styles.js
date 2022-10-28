@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
   },
   // header
   header: {
+    width,
     position: 'relative',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -192,9 +193,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     height: 50,
-    // marginTop: isAndroid ? 10 : 40 + notch(),
     paddingTop: isAndroid ? 10 : 40 + notch(),
-    // marginHorizontal: 10,
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
@@ -202,7 +201,7 @@ const styles = StyleSheet.create({
     width: 60,
   },
   headerRight: {
-    width: 60,
+    // width: 60,
     alignItems: 'flex-end',
   },
   // detect height
