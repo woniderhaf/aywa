@@ -7,6 +7,7 @@ import {
   NativeModules,
   NativeEventEmitter,
   PermissionsAndroid,
+  Text
 } from 'react-native';
 import {createAppContainer, createSwitchNavigator} from 'react-navigation';
 import {
@@ -44,7 +45,7 @@ import ShopDetailsAccessoriesScreen from './src/screens/ShopDetailsAccessories/I
 import Wallet from './src/screens/Wallet/Index';
 import Exchange from './src/screens/Exchange/Index';
 
-import Network from './src/screens/Network/Index';
+// import Network from './src/screens/Network/Index';
 
 import Profile from './src/screens/Profile/Index';
 import PersonalData from './src/screens/PersonalData/Index';
@@ -110,7 +111,7 @@ const startBlock = createStackNavigator(
     Register: Register,
   },
   options,
-  (options.initialRouteName = 'Login'),
+  (options.initialRouteName = 'Start'),
   (Register.navigationOptions = {
     animationEnabled: true,
     transitionSpec,
@@ -141,7 +142,7 @@ const mainBlock = createStackNavigator(
   },
   options,
   (options.initialRouteName = 'Main'),
-  // (options.initialRouteName = 'BLE'),
+                // (options.initialRouteName = 'BLE'),
   (Meditations.navigationOptions = {
     animationEnabled: true,
     transitionSpec,
@@ -187,13 +188,13 @@ const walletBlock = createStackNavigator(
     cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
   }),
 );
-const networkBlock = createStackNavigator(
-  {
-    Network: Network,
-  },
-  options,
-  (options.initialRouteName = 'Network'),
-);
+// const networkBlock = createStackNavigator(
+//   {
+//     Network: Network,
+//   },
+//   options,
+//   (options.initialRouteName = 'Network'),
+// );
 
 const profileBlock = createStackNavigator(
   {
@@ -222,7 +223,6 @@ const profileBlock = createStackNavigator(
     cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
   }),
 );
-// routes
 const AppNavigator = screen =>
   createSwitchNavigator(
     {
@@ -231,7 +231,7 @@ const AppNavigator = screen =>
       Main: mainBlock,
       Shop: shopBlock,
       Wallet: walletBlock,
-      Network: networkBlock,
+      // Network: networkBlock,
       Profile: profileBlock,
     },
     options,
@@ -299,7 +299,6 @@ export default class App extends Component {
     enableLatestRenderer();
   }
   componentDidMount = async () => {
-    // this.setState({screen: 'Start'});
     NetInfo.fetch().then(async state => {
       let screen = 'NoInternet';
       if (state.isConnected) {
@@ -332,13 +331,14 @@ export default class App extends Component {
     });
   };
   render() {
-    //Storage.clear()
     const AppContainer = createAppContainer(AppNavigator(this.state.screen));
     return (
       <>
         <StatusBar backgroundColor={'#090909'} />
         <AppContainer />
+
       </>
+
     );
   }
 }

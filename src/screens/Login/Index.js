@@ -21,7 +21,7 @@ import {
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 import {User} from '../../models/Index';
-import Toast from 'react-native-easy-toast';
+// import Toast from 'react-native-easy-toast';
 // components
 import GoBack from '../../components/GoBack';
 import {Http, Screens, Storage, Utils, Toaster} from '../../helpers/Index';
@@ -41,8 +41,8 @@ export default class LoginScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: 'kirill@mail.ru',
-      password: '1235',
+      email: '',
+      password: '',
       ispasswordshow: false,
       isblock: false,
       loading: true,
@@ -68,7 +68,7 @@ export default class LoginScreen extends Component {
       this.goto('Main');
       Storage.set('startScreen', 'Main');
     } catch (error) {
-      Toaster.show('Неверны логин или пароль', this.toast, styles, () => {});
+      // Toaster.show('Неверны логин или пароль', this.toast, styles, () => {});
     } finally {
       this.setState({isblock: false});
     }
@@ -174,7 +174,7 @@ export default class LoginScreen extends Component {
             </TouchableOpacity>
           )}
         </View>
-        <Toast
+        {/* <Toast
           ref={t => (this.toast = t)}
           style={[
             styles.toastmessage,
@@ -183,7 +183,7 @@ export default class LoginScreen extends Component {
           position={'top'}
           positionValue={-13}
           fadeInDuration={3000}
-        />
+        /> */}
       </View>
     );
   }
