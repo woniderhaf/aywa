@@ -45,7 +45,7 @@ import ShopDetailsAccessoriesScreen from './src/screens/ShopDetailsAccessories/I
 import Wallet from './src/screens/Wallet/Index';
 import Exchange from './src/screens/Exchange/Index';
 
-// import Network from './src/screens/Network/Index';
+import Network from './src/screens/Network/Index';
 
 import Profile from './src/screens/Profile/Index';
 import PersonalData from './src/screens/PersonalData/Index';
@@ -188,13 +188,13 @@ const walletBlock = createStackNavigator(
     cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
   }),
 );
-// const networkBlock = createStackNavigator(
-//   {
-//     Network: Network,
-//   },
-//   options,
-//   (options.initialRouteName = 'Network'),
-// );
+const networkBlock = createStackNavigator(
+  {
+    Network: Network,
+  },
+  options,
+  (options.initialRouteName = 'Network'),
+);
 
 const profileBlock = createStackNavigator(
   {
@@ -231,7 +231,7 @@ const AppNavigator = screen =>
       Main: mainBlock,
       Shop: shopBlock,
       Wallet: walletBlock,
-      // Network: networkBlock,
+      Network: networkBlock,
       Profile: profileBlock,
     },
     options,
