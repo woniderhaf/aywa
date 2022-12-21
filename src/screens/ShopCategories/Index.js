@@ -75,6 +75,7 @@ export default class ShopCategoriesScreen extends Component {
   otherCategories = [];
   panel = null;
   componentDidMount = async () => {
+    console.log('data --->>>',this.state.data);
     if (this.state.category === 'accessories') {
       this.setState({
         mbActiveCategories: [
@@ -86,7 +87,12 @@ export default class ShopCategoriesScreen extends Component {
     App.prepare(this.props.navigation, async user => {
       this.setMinMaxPrice();
       if (!this.state.data?.length) {
-        const data = await Http.get('mat/add');
+        let data = []
+        if(this.state.category == 'mat') {
+          const data = await Http.get('mat/add');
+        } else if (this.state.category == 'accessories') {
+          const data = await Http.get('accessory/add');
+        }
         this.setState({user: user, loading: false, data});
       } else {
         this.setState({user: user, loading: false});

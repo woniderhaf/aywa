@@ -183,7 +183,7 @@ export default class ShopDetailsAccessoriesScreen extends Component {
             <View style={s.container}>
               {console.log(this.state.data)}
               <ScrollView contentContainerStyle={s.item}>
-                <Image source={this.state.data.image} style={s.imgSkelet} />
+                <Image source={{uri : `data:image/png;base64,${this.state.data.image}`}} style={s.imgSkelet} />
                 <Text style={[s.name]}>{data.name}</Text>
                 <Text style={s.type}>{rarity[data.rare]}</Text>
                 <TouchableOpacity

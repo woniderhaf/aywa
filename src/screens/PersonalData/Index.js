@@ -129,7 +129,6 @@ export default PersonalData = props => {
       } else {
         const base64 = response.assets[0].base64;
         saveImage(base64);
-        console.log(base64);
         settings?.close();
       }
     });

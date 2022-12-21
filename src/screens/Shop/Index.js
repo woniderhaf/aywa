@@ -37,6 +37,7 @@ import {API, MAPS} from '../../globals/Сonstants';
 // styles
 import styles from '../../styles/Styles';
 import CardItem from './CardItem';
+
 import CardItemLoader from './CardItemLoader';
 import Animated, {
   FadeInLeft,
@@ -159,6 +160,7 @@ export default class ShopScreen extends Component {
                       </>
                     ) : (
                       this.state.mats
+                        .filter((v,i) => v.image?.length > 1 ? v : false)
                         .slice(0, 2)
                         .map((v, i) => (
                           <CardItem
