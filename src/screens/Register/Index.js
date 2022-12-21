@@ -20,7 +20,7 @@ import {
 // plug-ins
 import {SvgXml} from 'react-native-svg';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
-// import Toast from 'react-native-easy-toast';
+import Toast from 'react-native-easy-toast';
 // components
 import GoBack from '../../components/GoBack';
 import {Http, Utils, Storage, Toaster} from '../../helpers/Index';
@@ -74,15 +74,16 @@ export default class RegisterScreen extends Component {
       if (code == 0) {
         this.setState({isemailset: true});
       } else if (code == 409) {
-        // Toaster.show('Email занят.', this.toast, styles, () => {});
+        this.setState({isemailset:false})
+        Toaster.show('Email занят.', this.toast, styles, () => {});
       }
     } else {
-      // Toaster.show(
-      //   'Адрес электронной почты недействителен.',
-      //   this.toast,
-      //   styles,
-      //   () => {},
-      // );
+      Toaster.show(
+        'Адрес электронной почты недействителен.',
+        this.toast,
+        styles,
+        () => {},
+      );
     }
   };
 
@@ -113,12 +114,12 @@ export default class RegisterScreen extends Component {
       if (ispassword) {
         this.scrolldown();
       } else {
-        // Toaster.show(
-        //   'Введите 8-20 символов, включая по крайней мере одну букву и цифру.',
-        //   this.toast,
-        //   styles,
-        //   () => {},
-        // );
+        Toaster.show(
+          'Введите 8-20 символов, включая по крайней мере одну букву и цифру.',
+          this.toast,
+          styles,
+          () => {},
+        );
       }
     });
   };
@@ -130,7 +131,7 @@ export default class RegisterScreen extends Component {
         this.setState({step: 3});
         this.scrolldown();
       } else {
-        // Toaster.show('Пароли не совпадают.', this.toast, styles, () => {});
+        Toaster.show('Пароли не совпадают.', this.toast, styles, () => {});
       }
     });
   };
@@ -141,7 +142,7 @@ export default class RegisterScreen extends Component {
       if (isfirstname) {
         this.scrolldown();
       } else {
-        // Toaster.show('Введите имя.', this.toast, styles, () => {});
+        Toaster.show('Введите имя.', this.toast, styles, () => {});
       }
     });
   };
@@ -153,7 +154,7 @@ export default class RegisterScreen extends Component {
         this.setState({step: 4});
         this.scrolldown();
       } else {
-        // Toaster.show('Введите фамилию.', this.toast, styles, () => {});
+        Toaster.show('Введите фамилию.', this.toast, styles, () => {});
       }
     });
   };
@@ -697,7 +698,7 @@ export default class RegisterScreen extends Component {
             </View>
           </View>
         </BottomSheet>
-        {/* <Toast
+        <Toast
           ref={t => (this.toast = t)}
           style={[
             styles.toastmessage,
@@ -711,7 +712,7 @@ export default class RegisterScreen extends Component {
           positionValue={-13}
           fadeInDuration={2000}
           fadeOutDuration={2000}
-        /> */}
+        />
       </View>
     );
   }

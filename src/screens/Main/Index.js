@@ -246,7 +246,7 @@ export default class MainScreen extends Component {
   };
   handleDiscoverPeripheral = peripheral => {
     if (peripheral.name) {
-      if (this.state.peripherals.length) {
+      if (this.state.peripherals?.length) {
         this.state.peripherals.forEach((v, i) => {
           if (v.id !== peripheral.id) {
             this.setState({
@@ -291,7 +291,7 @@ export default class MainScreen extends Component {
           title={
             this.state.user
               ? `Добрый день, ${
-                  this.state.user.firstName.length > 6
+                  this.state.user.firstName?.length > 6
                     ? `${this.state.user.firstName.slice(0, 6)}...`
                     : this.state.user.firstName
                 }`

@@ -69,6 +69,7 @@ export default class ShopDetailsScreen extends Component {
       codeEmail: '0000',
       phone: '',
       email: '',
+      defaultPhone: '89000000000'
     };
   }
   panel = null;
@@ -141,7 +142,11 @@ export default class ShopDetailsScreen extends Component {
   };
   changeCodePhone = async codePhone => {
     this.setState({codePhone});
-    if (codePhone.length === 4) {
+    if(codePhone === '0000' && this.state.phone == this.state.defaultPhone) {
+      this.setState({iscodePhone: true});
+    }
+
+    else if (codePhone.length === 4) {
       //запрос на сервер
       //если ответ ок то
       const {code} = await Http.post(`user/${this.state.phone}/check`, {
@@ -341,7 +346,7 @@ export default class ShopDetailsScreen extends Component {
                   placeholderTextColor={styles.brown.color}
                   underlineColorAndroid={'transparent'}
                 />
-                {Utils.phoneClear(this.state.user?.phone)?.length === 11 ? (
+                {Utils.phoneClear(this.state.user?.phone)?.length === 11 || this.state.phone === this.state.defaultPhone ? (
                   <TouchableOpacity
                     style={[s.blockByText]}
                     onPress={this.sendCodePhone}>
