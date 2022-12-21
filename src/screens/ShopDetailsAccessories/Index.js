@@ -181,7 +181,6 @@ export default class ShopDetailsAccessoriesScreen extends Component {
           }>
           {this.state.loading ? null : (
             <View style={s.container}>
-              {console.log(this.state.data)}
               <ScrollView contentContainerStyle={s.item}>
                 <Image source={{uri : `data:image/png;base64,${this.state.data.image}`}} style={s.imgSkelet} />
                 <Text style={[s.name]}>{data.name}</Text>

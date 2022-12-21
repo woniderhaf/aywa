@@ -160,8 +160,7 @@ export default class ShopScreen extends Component {
                       </>
                     ) : (
                       this.state.mats
-                        .filter((v,i) => v.image?.length > 1 ? v : false)
-                        .slice(0, 2)
+                        .slice(this.state.mats.length-3, this.state.mats.length -1)
                         .map((v, i) => (
                           <CardItem
                             key={v._id}
