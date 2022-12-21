@@ -2,8 +2,8 @@
  * (с) pavit.design, 2022
  */
 
+import 'react-native-gesture-handler'
 import {AppRegistry, Text} from 'react-native';
-import 'react-native-gesture-handler';
 import App from './App';
 import {name as appName} from './app.json';
 import TrackPlayer from 'react-native-track-player';
