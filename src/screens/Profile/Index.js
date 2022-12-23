@@ -2,9 +2,10 @@
  * (c) pavit.design, 2022
  */
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
+  Platform,
   TouchableOpacity,
   Text,
   Image,
@@ -14,6 +15,8 @@ import {
   PermissionsAndroid,
   Dimensions,
   Linking,
+  NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
 import Animated, {
   Layout,
@@ -25,7 +28,10 @@ import Animated, {
 } from 'react-native-reanimated';
 //components
 import Template from '../../components/Template';
+import SearchDevice from '../../components/searchDevice';
 //plug-ins
+import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import BleManager from 'react-native-ble-manager';
 import {App, Storage} from '../../helpers/Index';
 import {SvgXml} from 'react-native-svg';
 import Geolocation from '@react-native-community/geolocation';
@@ -80,8 +86,11 @@ export default Profile = props => {
   const [islocation, isSetLocation] = useState(true);
   const [isGeoposition, setIsGeoposition] = useState(false);
   const [isNotifications, setIsNotifications] = useState(false);
+  const [peripherals,setPeripherals] = useState([])
+  const searchDevice = useRef(null)
   useEffect(() => {
     App.prepare(props.navigation, async userStorage => {
+      // BleManager.start({showAlert: false});
       let notifications = await Storage.get('notifications');
       if (notifications) {
         notifications = await JSON.parse(notifications);
@@ -103,6 +112,7 @@ export default Profile = props => {
       });
     });
   }, []);
+  console.log('IMAGE',user?.image);
 
   const getLocation = async () => {
     const granted = await PermissionsAndroid.check(
@@ -163,6 +173,54 @@ export default Profile = props => {
     }
   };
 
+
+
+  //
+  const handleDiscoverPeripheral = peripheral => {
+    if (peripheral.name) {
+      if (this.state.peripherals?.length) {
+        this.state.peripherals.forEach((v, i) => {
+          if (v.id !== peripheral.id) {
+            setPeripherals( [...this.state.peripherals, peripheral])
+          }
+        });
+      } else {
+        setPeripherals([...this.state.peripherals, peripheral])
+      }
+    }
+  }
+
+  // const BleManagerModule = NativeModules.BleManager;
+  // const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
+  // BleManagerEmitter.addListener(
+  //   'BleManagerDiscoverPeripheral',
+  //   handleDiscoverPeripheral,
+  // );
+
+  // if (Platform.OS === 'android' && Platform.Version >= 23) {
+  //   PermissionsAndroid.check(
+  //     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //   ).then(result => {
+  //     if (result) {
+  //       console.log('Permission is OK');
+  //     } else {
+  //       PermissionsAndroid.request(
+  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //       ).then(result => {
+  //         if (result) {
+  //           console.log('User accept');
+  //         } else {
+  //           console.log('User refuse');
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
+
+
+
+  //
   return (
     <>
       <Template
@@ -290,7 +348,7 @@ export default Profile = props => {
                       Для работы приложения Вам необходимо подключиться к
                       фитнес-трекеру
                     </Text>
-                    <TouchableOpacity style={[s.connection, styles.center]}>
+                    <TouchableOpacity style={[s.connection, styles.center]} >
                       <ImageBackground
                         style={s.connection}
                         source={require('./Images/bgButton.png')}>
@@ -408,6 +466,33 @@ export default Profile = props => {
           </View>
         )}
       </Template>
+      <BottomSheet
+          ref={searchDevice}
+          index={-1}
+          snapPoints={[500]}
+          backgroundStyle={{backgroundColor: '#0F0F0F', borderRadius: radius}}
+          handleComponent={null}
+          enablePanDownToClose={true}
+          // onChange={e => {
+          //   e === -1
+          //     ? this.setState({isSearchDevices: false, peripherals: []})
+          //     : null;
+          // }}
+          backdropComponent={p => (
+            <BottomSheetBackdrop
+              {...p}
+              pressBehavior={'close'}
+              disappearsOnIndex={-1}
+              opacity={0.7}
+              appearsOnIndex={0}
+            />
+          )}>
+              {/* <SearchDevice
+                peripherals={peripherals}
+                errorConnect={this.stateerrorConnect}
+                BleManagerEmitter={BleManagerEmitter}
+              /> */}
+        </BottomSheet>
     </>
   );
 };

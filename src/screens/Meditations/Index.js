@@ -240,11 +240,11 @@ export default Meditations = props => {
                           Подробнее
                         </Text>
                       </TouchableOpacity>
-                      <Text>
+                      {/* <Text>
                         <SvgXml
                           xml={`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_344_195688)"><path d="M17.3018 6.71094L6.70223 17.3105" stroke="#5B5B5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.82319 6.7227L17.3035 6.69513L17.2759 15.1755" stroke="#5B5B5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g><defs><clipPath id="clip0_344_195688"><rect width="24" height="24" fill="white"/></clipPath></defs></svg>`}
                         />
-                      </Text>
+                      </Text> */}
                     </>
                   ) : (
                     <>
@@ -286,11 +286,11 @@ export default Meditations = props => {
                   <TouchableOpacity style={s.detail}>
                     <Text style={[s.detailText, styles.white]}>Подробнее</Text>
                   </TouchableOpacity>
-                  <Text>
+                  {/* <Text>
                     <SvgXml
                       xml={`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_344_195688)"><path d="M17.3018 6.71094L6.70223 17.3105" stroke="#5B5B5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.82319 6.7227L17.3035 6.69513L17.2759 15.1755" stroke="#5B5B5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g><defs><clipPath id="clip0_344_195688"><rect width="24" height="24" fill="white"/></clipPath></defs></svg>`}
                     />
-                  </Text>
+                  </Text> */}
                 </View>
               </View>
             </View>

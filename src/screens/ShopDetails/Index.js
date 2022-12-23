@@ -346,7 +346,7 @@ export default class ShopDetailsScreen extends Component {
                   placeholderTextColor={styles.brown.color}
                   underlineColorAndroid={'transparent'}
                 />
-                {Utils.phoneClear(this.state.user?.phone)?.length === 11 || this.state.phone === this.state.defaultPhone ? (
+                {Utils.phoneClear(this.state.user?.phone)?.length === 11 && Utils.phoneClear(this.state.phone)?.length == 11 || this.state.phone === this.state.defaultPhone ? (
                   <TouchableOpacity
                     style={[s.blockByText]}
                     onPress={this.sendCodePhone}>

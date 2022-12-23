@@ -160,7 +160,7 @@ export default class ShopScreen extends Component {
                       </>
                     ) : (
                       this.state.mats
-                        .slice(this.state.mats.length-3, this.state.mats.length -1)
+                        .slice( this.state.mats.length - 3, this.state.mats.length - 1)
                         .map((v, i) => (
                           <CardItem
                             key={v._id}
@@ -215,7 +215,7 @@ export default class ShopScreen extends Component {
                 </Animated.View>
               )}
               {this.state.tab === 3 && (
-                <Animated.View entering={SlideInRight} onTouchEnd>
+                <Animated.View entering={SlideInRight}>
                   {this.state.user.NFT.length ? (
                     <>
                       <View style={[s.items, {marginTop: 54}]}>
@@ -223,8 +223,8 @@ export default class ShopScreen extends Component {
                           <CardItem
                             v={v}
                             key={v._id}
-                            goto={this.goto}
-                            type={'mat'}
+                            goto={() => {}}
+                            
                           />
                         ))}
                       </View>

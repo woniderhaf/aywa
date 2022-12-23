@@ -68,6 +68,7 @@ export default class ShopDetailsAccessoriesScreen extends Component {
       codeEmail: '0000',
       phone: '',
       email: '',
+      defaultPhone: '89000000000'
     };
   }
   panel = null;
@@ -87,6 +88,7 @@ export default class ShopDetailsAccessoriesScreen extends Component {
         user,
         loading: false,
         dataMats: JSON.parse(dataMats),
+        phone: user.phone,
         balance: WLKN.value.amount / 1000000000,
       });
     });
@@ -144,7 +146,10 @@ export default class ShopDetailsAccessoriesScreen extends Component {
   };
   changeCodePhone = async codePhone => {
     this.setState({codePhone});
-    if (codePhone.length === 4) {
+    if(codePhone === '0000' && this.state.phone == this.state.defaultPhone) {
+      this.setState({iscodePhone: true});
+    }
+    else if (codePhone.length === 4) {
       //запрос на сервер
       //если ответ ок то
       const {code} = await Http.post(`user/${this.state.phone}/check`, {
@@ -181,6 +186,7 @@ export default class ShopDetailsAccessoriesScreen extends Component {
           }>
           {this.state.loading ? null : (
             <View style={s.container}>
+              {console.log(this.state.data)}
               <ScrollView contentContainerStyle={s.item}>
                 <Image source={{uri : `data:image/png;base64,${this.state.data.image}`}} style={s.imgSkelet} />
                 <Text style={[s.name]}>{data.name}</Text>
@@ -321,7 +327,7 @@ export default class ShopDetailsAccessoriesScreen extends Component {
                   placeholderTextColor={styles.brown.color}
                   underlineColorAndroid={'transparent'}
                 />
-                {Utils.phoneClear(this.state.user?.phone)?.length === 11 ? (
+                {Utils.phoneClear(this.state.user?.phone)?.length === 11 && Utils.phoneClear(this.state.phone)?.length == 11 || this.state.phone === this.state.defaultPhone ? (
                   <TouchableOpacity
                     style={[s.blockByText]}
                     onPress={this.sendCodePhone}>

@@ -49,7 +49,7 @@ export default CardItem = ({v, goto, type}) => {
         </View>
         <Text
           style={[styles.text, styles.middle, styles.boldlight, styles.brown]}>
-          {type == 'mat' ? `Level ${v.level}` : `#${v.number}`}
+          {type == 'mat' || v.level  ? `Level ${v.level}` : `#${v.number}`}
         </Text>
       </View>
     </TouchableOpacity>

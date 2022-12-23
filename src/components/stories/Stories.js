@@ -6,7 +6,7 @@ import {Http, Storage} from '../../helpers/Index';
 const Stories = props => {
   const StoriesFormatter = useMemo(
     () =>
-      props.stories.map(item => {
+      props.stories.map((item,i) => {
         return {
           _id: item._id,
           stories: item.stories.map(item => ({story_image: item.image})),
