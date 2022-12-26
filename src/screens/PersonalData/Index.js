@@ -214,8 +214,12 @@ export default PersonalData = props => {
     }
   };
   const logout = () => {
-    Storage.clear();
-    props.navigation.navigate('Start');
+    Alert.alert('Внимание!','Вы действительно хотите выйти?',
+      [{text:'Нет',style:'cancel'},{text:'Да',onPress:() => {
+        Storage.clear();
+        props.navigation.navigate('Start');
+      }}])
+   
   };
   const timeOutRepeatCode = () => {
     setTimeout(() => {

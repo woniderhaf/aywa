@@ -80,6 +80,7 @@ const s = StyleSheet.create({
     fontWeight: '400',
     lineHeight: 18,
     marginBottom: 24,
+    maxWidth:'90%'
   },
   data: {
     ...styles.spaceBetween,

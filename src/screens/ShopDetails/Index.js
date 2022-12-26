@@ -22,6 +22,7 @@ import {
 import {SvgXml} from 'react-native-svg';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
 import 'moment/locale/ru';
+import LinearGradient from 'react-native-linear-gradient';
 
 // components
 import Template from '../../components/Template';
@@ -202,6 +203,8 @@ export default class ShopDetailsScreen extends Component {
           {this.state.loading ? null : (
             <View style={s.container}>
               <ScrollView contentContainerStyle={s.item}>
+                {/* <LinearGradient style={[s.imgSkelet, {zIndex:10, position:'absolute', top:0}]} start={{x:0,y:0}} end={{x:2,y:2}} colors={['#242424', 'transparent']}>
+                </LinearGradient> */}
                 <Image
                   source={{
                     uri: `data:image/png;base64,${this.state.data.image}`,

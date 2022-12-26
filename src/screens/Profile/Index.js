@@ -178,45 +178,45 @@ export default Profile = props => {
   //
   const handleDiscoverPeripheral = peripheral => {
     if (peripheral.name) {
-      if (this.state.peripherals?.length) {
+      if (peripherals?.length) {
         this.state.peripherals.forEach((v, i) => {
           if (v.id !== peripheral.id) {
-            setPeripherals( [...this.state.peripherals, peripheral])
+            setPeripherals( [...peripherals, peripheral])
           }
         });
       } else {
-        setPeripherals([...this.state.peripherals, peripheral])
+        setPeripherals([...peripherals, peripheral])
       }
     }
   }
 
-  // const BleManagerModule = NativeModules.BleManager;
-  // const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+  const BleManagerModule = NativeModules.BleManager;
+  const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-  // BleManagerEmitter.addListener(
-  //   'BleManagerDiscoverPeripheral',
-  //   handleDiscoverPeripheral,
-  // );
+  BleManagerEmitter.addListener(
+    'BleManagerDiscoverPeripheral',
+    handleDiscoverPeripheral,
+  );
 
-  // if (Platform.OS === 'android' && Platform.Version >= 23) {
-  //   PermissionsAndroid.check(
-  //     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //   ).then(result => {
-  //     if (result) {
-  //       console.log('Permission is OK');
-  //     } else {
-  //       PermissionsAndroid.request(
-  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //       ).then(result => {
-  //         if (result) {
-  //           console.log('User accept');
-  //         } else {
-  //           console.log('User refuse');
-  //         }
-  //       });
-  //     }
-  //   });
-  // }
+  if (Platform.OS === 'android' && Platform.Version >= 23) {
+    PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    ).then(result => {
+      if (result) {
+        console.log('Permission is OK');
+      } else {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        ).then(result => {
+          if (result) {
+            console.log('User accept');
+          } else {
+            console.log('User refuse');
+          }
+        });
+      }
+    });
+  }
 
 
 
@@ -348,7 +348,7 @@ export default Profile = props => {
                       Для работы приложения Вам необходимо подключиться к
                       фитнес-трекеру
                     </Text>
-                    <TouchableOpacity style={[s.connection, styles.center]} >
+                    <TouchableOpacity style={[s.connection, styles.center]} onPress={() => searchDevice.current.snapToIndex(0)}>
                       <ImageBackground
                         style={s.connection}
                         source={require('./Images/bgButton.png')}>
@@ -487,11 +487,11 @@ export default Profile = props => {
               appearsOnIndex={0}
             />
           )}>
-              {/* <SearchDevice
+              <SearchDevice
                 peripherals={peripherals}
                 errorConnect={this.stateerrorConnect}
                 BleManagerEmitter={BleManagerEmitter}
-              /> */}
+              />
         </BottomSheet>
     </>
   );

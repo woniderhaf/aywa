@@ -27,6 +27,8 @@ import Start from './src/screens/Start/Index';
 
 import Login from './src/screens/Login/Index';
 
+import NoInternet from './src/screens/NoInternet/Index';
+
 import Remind from './src/screens/Remind/Index';
 import RemindCode from './src/screens/RemindCode/Index';
 import RemindPassword from './src/screens/RemindPassword/Index';
@@ -195,6 +197,13 @@ const networkBlock = createStackNavigator(
   options,
   (options.initialRouteName = 'Network'),
 );
+const noInternetBlock = createStackNavigator(
+  {
+    NoInternet: NoInternet,
+  },
+  options,
+  (options.initialRouteName = 'NoInternet'),
+);
 
 const profileBlock = createStackNavigator(
   {
@@ -233,6 +242,7 @@ const AppNavigator = screen =>
       Wallet: walletBlock,
       Network: networkBlock,
       Profile: profileBlock,
+      NoInternet: noInternetBlock
     },
     options,
     (options.initialRouteName = screen),

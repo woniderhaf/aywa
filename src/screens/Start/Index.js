@@ -36,9 +36,9 @@ export default class StartScreen extends Component {
     return (
       <View style={s.container}>
         <View style={[s.block, s.blocktop]}>
-          <Image source={require('./Images/logo.png')} style={s.logo} />
-          <Text style={[styles.text, styles.logo, styles.black]}>AYWA</Text>
-          <Text style={[styles.text, styles.textlarge, styles.grey]}>
+          <Image source={require('./Images/eywa.jpg')} style={s.logo} />
+          {/* <Text style={[styles.text, styles.logo, styles.black]}>AYWA</Text> */}
+          <Text style={[styles.text, styles.textlarge, styles.grey,{marginTop:20}]}>
             Медитация в твоем кармане
           </Text>
         </View>

@@ -28,7 +28,7 @@ import Template from '../../components/Template';
 import {App} from '../../helpers/Index';
 import styles from '../../styles/Styles';
 import moment from 'moment';
-// import QRCode from 'react-native-qrcode-svg';
+import QRCode from 'react-native-qrcode-svg';
 
 import Transaction from '../../components/Transaction';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
@@ -311,7 +311,7 @@ export default Wallet = props => {
             {/* <Image source={require('./Images/qr.png')} /> */}
             <View
               style={{backgroundColor: 'white', padding: 20, borderRadius: 20}}>
-              {/* <QRCode value={code} size={220} /> */}
+              <QRCode value={code} size={220} />
             </View>
           </View>
           <View style={s.codeBlock}>
